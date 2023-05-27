@@ -3,16 +3,16 @@
 // render(scene) -> image
 
 #include "image.hpp"
+#include "random.hpp"
 #include <cstddef>
 
 int main() {
   RGBImage image(640, 480);
-
+  RNG random;
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
-      image.set_pixel(row, col,
-                      vec3(static_cast<real>(row) / image.m_width,
-                           static_cast<real>(col) / image.m_height, 1.0));
+      const vec3 pixel = random.random_vec3();
+      image.set_pixel(row, col, pixel);
     }
   }
 

@@ -29,9 +29,7 @@ using mat4 = glm::dmat4;
     throw std::runtime_error(fmt::format("{}:{} -- ", __FILE__, __LINE__) +    \
                              fmt::format(message, ##__VA_ARGS__));
 
-constexpr inline float gamma_correct_real(const real d) {
-  constexpr real gamma = 2.2, gamma_exp = 1.0 / gamma;
-  return std::pow(d, gamma_exp);
-}
-
-constexpr inline unsigned char to_byte(const real d) { return 255.0 * d; }
+#define debug_assert_eq(a, b, message, ...)                                    \
+  if ((a) != (b)) [[unlikely]]                                                 \
+    throw std::runtime_error(fmt::format("{}:{} -- ", __FILE__, __LINE__) +    \
+                             fmt::format(message, ##__VA_ARGS__));

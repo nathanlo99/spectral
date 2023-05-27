@@ -5,6 +5,13 @@
 
 using RGBByte = std::array<unsigned char, 3>;
 
+constexpr inline float gamma_correct_real(const real d) {
+  constexpr real gamma = 2.2, gamma_exp = 1.0 / gamma;
+  return std::pow(d, gamma_exp);
+}
+
+constexpr inline unsigned char to_byte(const real d) { return 255.0 * d; }
+
 inline RGBByte straight_to_pixel(const vec3 &pixel) {
   RGBByte result;
   result[0] = to_byte(std::clamp<real>(pixel[0], 0.0, 1.0));
