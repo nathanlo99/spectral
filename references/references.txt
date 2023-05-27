@@ -1,0 +1,25 @@
+
+Rendering:
+https://cseweb.ucsd.edu/~tzli/cse272/wi2023/
+
+Spectral materials:
+https://www.indigorenderer.com/materials
+https://spectraldb.com/
+https://www.researchgate.net/figure/Spectral-reflectivity-of-perfectly-smooth-metal-surfaces-3_fig1_236582531
+https://graphics.geometrian.com/research/spectral-primaries.html
+https://refractiveindex.info/
+
+Advanced spectral materials:
+https://rgl.epfl.ch/publications/Guillen2020Pearlescent
+
+The idea of spectral rendering is as follows:
+- For each material, we have the following:
+  - A function that takes in a wavelength and returns how much of the light is absorbed vs. re-emitted, either reflected, or transmitted
+  - If the material is input as a standard RGB texture, we might have to do some conversions here
+
+For each pixel of the resulting image, we do the following:
+  1. Generate a ray at random through that pixel, in a random direction and with a random wavelength
+  2. Trace that ray through the scene, computing the intensity of the incoming light along the ray
+  3. Add this intensity sample to the pixel data
+  4. After repeating this a few times, integrate the wavelength intensities to get RGB values
+x

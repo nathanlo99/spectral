@@ -16,5 +16,5 @@ int main() {
     }
   }
 
-  image.write_png("output/blank.png", straight_to_pixel);
+  image.write_png("output/blank.png", straight_to_bytes);
 }

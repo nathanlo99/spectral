@@ -12,7 +12,7 @@ constexpr inline float gamma_correct_real(const real d) {
 
 constexpr inline unsigned char to_byte(const real d) { return 255.0 * d; }
 
-inline RGBByte straight_to_pixel(const vec3 &pixel) {
+inline RGBByte straight_to_bytes(const vec3 &pixel) {
   RGBByte result;
   result[0] = to_byte(std::clamp<real>(pixel[0], 0.0, 1.0));
   result[1] = to_byte(std::clamp<real>(pixel[1], 0.0, 1.0));
@@ -20,7 +20,7 @@ inline RGBByte straight_to_pixel(const vec3 &pixel) {
   return result;
 }
 
-inline RGBByte default_to_pixel(const vec3 &pixel) {
+inline RGBByte default_to_bytes(const vec3 &pixel) {
   RGBByte result;
   result[0] = to_byte(gamma_correct_real(std::clamp<real>(pixel[0], 0.0, 1.0)));
   result[1] = to_byte(gamma_correct_real(std::clamp<real>(pixel[1], 0.0, 1.0)));
@@ -45,11 +45,11 @@ template <typename Pixel> struct Image {
   // TODO: Consider allowing global tone-mapping:
   // https://64.github.io/tonemapping
   void write_png(const std::string_view &filename,
-                 const std::function<RGBByte(const Pixel &pixel)> &to_pixel =
-                     default_to_pixel) {
+                 const std::function<RGBByte(const Pixel &pixel)> &to_bytes =
+                     default_to_bytes) {
     std::vector<unsigned char> gamma_corrected_data(3 * m_width * m_height);
     for (size_t i = 0; i < m_width * m_height; ++i) {
-      const RGBByte rgb_pixel = to_pixel(m_pixels[i]);
+      const RGBByte rgb_pixel = to_bytes(m_pixels[i]);
       gamma_corrected_data[3 * i + 0] = rgb_pixel[0];
       gamma_corrected_data[3 * i + 1] = rgb_pixel[1];
       gamma_corrected_data[3 * i + 2] = rgb_pixel[2];
