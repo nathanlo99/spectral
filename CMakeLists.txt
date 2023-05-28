@@ -14,7 +14,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
-set(CMAKE_CXX_FLAGS "-fsanitize=address,undefined -Wall -Wextra -pedantic -g -Ofast")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -g -Ofast -ffast-math -Wno-gnu-zero-variadic-macro-arguments")
+set(CMAKE_EXE_LINKER_FLAGS "-pthread -flto -Ofast")
 
 # Pull in Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -26,6 +27,4 @@ include_directories(${Boost_INCLUDE_DIRS})
 file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 add_executable(spectral ${SOURCES})
 include_directories(include)
-target_link_libraries(spectral fmt::fmt-header-only)
-target_link_libraries(spectral ${Boost_LIBRARIES})
-target_link_libraries(spectral OpenMP::OpenMP_CXX)
+target_link_libraries(spectral fmt::fmt-header-only ${Boost_LIBRARIES} OpenMP::OpenMP_CXX)

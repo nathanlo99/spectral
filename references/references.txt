@@ -1,16 +1,18 @@
 
 Rendering:
 https://cseweb.ucsd.edu/~tzli/cse272/wi2023/
+Tone Reproduction and Physically Based Spectral Rendering
 
 Spectral materials:
-https://www.indigorenderer.com/materials
-https://spectraldb.com/
-https://www.researchgate.net/figure/Spectral-reflectivity-of-perfectly-smooth-metal-surfaces-3_fig1_236582531
-https://graphics.geometrian.com/research/spectral-primaries.html
-https://refractiveindex.info/
+  Absorption and IOR data: https://www.indigorenderer.com/materials
+  General spectral data (mostly opaque): https://spectraldb.com/
+  Reflectivity of metal surfaces: https://www.researchgate.net/figure/Spectral-reflectivity-of-perfectly-smooth-metal-surfaces-3_fig1_236582531
+  IOR data and much more: https://refractiveindex.info/
+  Converting RGB materials to spectra: https://rgl.s3.eu-central-1.amazonaws.com/media/papers/Jakob2019Spectral_3.pdf
+  Turning RGB albedo into spectra: https://graphics.geometrian.com/research/spectral-primaries.html
 
 Advanced spectral materials:
-https://rgl.epfl.ch/publications/Guillen2020Pearlescent
+  https://rgl.epfl.ch/publications/Guillen2020Pearlescent
 
 The idea of spectral rendering is as follows:
 - For each material, we have the following:
@@ -22,4 +24,3 @@ For each pixel of the resulting image, we do the following:
   2. Trace that ray through the scene, computing the intensity of the incoming light along the ray
   3. Add this intensity sample to the pixel data
   4. After repeating this a few times, integrate the wavelength intensities to get RGB values
-x
