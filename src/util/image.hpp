@@ -12,7 +12,7 @@ constexpr inline real gamma_correct_real(const real d) {
 
 constexpr inline unsigned char to_byte(const real d) { return 255.99 * d; }
 
-constexpr inline RGBByte to_bytes(const vec3 &pixel) {
+inline RGBByte to_bytes(const vec3 &pixel) {
   RGBByte result;
   result[0] = to_byte(std::clamp<real>(pixel[0], 0.0, 1.0));
   result[1] = to_byte(std::clamp<real>(pixel[1], 0.0, 1.0));

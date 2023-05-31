@@ -8,7 +8,7 @@ FetchContent_Declare(fmt
 )
 FetchContent_MakeAvailable(fmt)
 
-find_package(OpenMP REQUIRED)
+# find_package(OpenMP REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,7 +24,8 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED COMPONENTS random)
 include_directories(src ${Boost_INCLUDE_DIRS})
 
-file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/scene/*.cpp" "src/util/*.cpp")
+file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/scene/*.cpp" "src/util/*.cpp" "src/objects/*.cpp")
 add_executable(spectral ${SOURCES})
 include_directories(include)
-target_link_libraries(spectral fmt::fmt-header-only ${Boost_LIBRARIES} OpenMP::OpenMP_CXX)
+target_link_libraries(spectral fmt::fmt-header-only ${Boost_LIBRARIES})
+# target_link_libraries(OpenMP::OpenMP_CXX)

@@ -11,11 +11,11 @@
 vec3 ray_colour(const Ray &r, const Scene &scene) {
   HitRecord record;
   if (scene.world.hit(r, 0, INFINITY, record)) {
-    return 0.5 * (record.normal + vec3(1.0));
+    return 0.5f * (record.normal + vec3(1.0));
   }
   const vec3 unit_direction = glm::normalize(r.direction);
-  const real t = 0.5 * (unit_direction.y + 1.0);
-  return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+  const real t = 0.5f * (unit_direction.y + 1.0);
+  return (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
 int main() {
@@ -38,5 +38,5 @@ int main() {
     }
   }
 
-  image.write_png<true>("output/blank.png");
+  image.write_png<false>("output/blank.png");
 }

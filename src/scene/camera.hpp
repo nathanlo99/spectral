@@ -18,8 +18,9 @@ struct Camera {
         right(glm::normalize(glm::cross(forward, up))),
         up(glm::cross(right, forward)) {
 
-    fmt::println("Camera: pos = {}, forward = {}, right = {}, up = {}", pos,
-                 forward, right, up);
+    fmt::println("Camera:\n\tpos     = {}\n\tforward = {}\n\tright   = "
+                 "{}\n\tup      = {}",
+                 pos, forward, right, up);
   }
 
   template <typename Pixel>
@@ -32,11 +33,11 @@ struct Camera {
 
   inline Ray get_ray(const real x, const real y) const {
     const real near_plane_height =
-        2.0 * std::tan(glm::radians(vertical_fov) * 0.5);
+        2.0f * std::tan(glm::radians(vertical_fov) * 0.5f);
     const real pixel_size = near_plane_height / image_height;
     const vec3 direction = forward +
-                           (x - image_width / 2.0) * pixel_size * right +
-                           (image_height / 2.0 - y) * pixel_size * up;
+                           (x - image_width / 2.0f) * pixel_size * right +
+                           (image_height / 2.0f - y) * pixel_size * up;
     return Ray(pos, glm::normalize(direction));
   }
 };
