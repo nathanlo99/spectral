@@ -31,7 +31,7 @@ int main() {
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
       RNG random(row * image.m_width + col);
-      for (size_t sample = 0; sample < 1000; ++sample) {
+      for (size_t sample = 0; sample < 100; ++sample) {
         const Ray ray = camera.get_ray(col, row);
         image.add_pixel_sample(row, col, ray_colour(ray, scene));
       }

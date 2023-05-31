@@ -31,7 +31,8 @@ struct Camera {
   inline void set_fov(const real fov) { vertical_fov = fov; }
 
   inline Ray get_ray(const real x, const real y) const {
-    const real near_plane_height = 2.0 * std::tan(vertical_fov * 0.5);
+    const real near_plane_height =
+        2.0 * std::tan(glm::radians(vertical_fov) * 0.5);
     const real pixel_size = near_plane_height / image_height;
     const vec3 direction = forward +
                            (x - image_width / 2.0) * pixel_size * right +
