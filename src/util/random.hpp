@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "util.hpp"
+#include "util/util.hpp"
 #include <boost/random.hpp>
 
 using generator_t = boost::random::mt11213b;

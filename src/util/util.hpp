@@ -1,12 +1,15 @@
 
 #pragma once
 
-#include "stb.hpp"
+#include "glm/gtx/string_cast.hpp"
+
+#include "util/stb.hpp"
 #include <array>
 #include <cmath>
 #include <fmt/core.h>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -33,3 +36,9 @@ using mat4 = glm::dmat4;
   if ((a) != (b)) [[unlikely]]                                                 \
     throw std::runtime_error(fmt::format("{}:{} -- ", __FILE__, __LINE__) +    \
                              fmt::format(message, ##__VA_ARGS__));
+
+template <> struct fmt::formatter<vec3> : formatter<std::string> {
+  auto format(const vec3 &vec, format_context &ctx) const {
+    return formatter<std::string>::format(glm::to_string(vec), ctx);
+  }
+};

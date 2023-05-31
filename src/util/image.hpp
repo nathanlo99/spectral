@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "util.hpp"
+#include "util/util.hpp"
 
 using RGBByte = std::array<unsigned char, 3>;
 
