@@ -5,7 +5,7 @@
 
 using RGBByte = std::array<unsigned char, 3>;
 
-constexpr inline float gamma_correct_real(const real d) {
+constexpr inline real gamma_correct_real(const real d) {
   constexpr real gamma = 2.2, gamma_exp = 1.0 / gamma;
   return std::pow(d, gamma_exp);
 }
@@ -22,41 +22,46 @@ constexpr inline RGBByte to_bytes(const vec3 &pixel) {
 
 template <bool gamma_correct = true>
 constexpr inline vec3 gamma_correct_pixel(const vec3 &pixel) {
-  constexpr auto optional_gamma_correct = [](const real d) {
-    return gamma_correct ? gamma_correct_real(d) : d;
-  };
+  if constexpr (!gamma_correct)
+    return pixel;
   vec3 result;
-  result[0] = optional_gamma_correct(pixel[0]);
-  result[1] = optional_gamma_correct(pixel[1]);
-  result[2] = optional_gamma_correct(pixel[2]);
+  result[0] = gamma_correct_real(pixel[0]);
+  result[1] = gamma_correct_real(pixel[1]);
+  result[2] = gamma_correct_real(pixel[2]);
   return result;
 }
 
 template <typename Pixel> struct Image {
-  size_t m_width;
-  size_t m_height;
+  size_t m_width = 0;
+  size_t m_height = 0;
   std::vector<Pixel> m_pixels;
 
   constexpr Image(const size_t width, const size_t height)
-      : m_width(width), m_height(height), m_pixels(width * height, Pixel()) {}
+      : m_width(width), m_height(height), m_pixels(width * height) {}
 
   constexpr void set_pixel(const size_t row, const size_t col,
                            const Pixel &pixel) {
-    debug_assert(row < m_height, "Image::set_pixel: row ({}) >= m_height ({})",
-                 row, m_height);
-    debug_assert(col < m_width, "Image::set_pixel: col ({}) >= m_width ({})",
-                 col, m_width);
+    debug_assert(row < m_height, "row ({}) >= m_height ({})", row, m_height);
+    debug_assert(col < m_width, "col ({}) >= m_width ({})", col, m_width);
     m_pixels[row * m_width + col] = pixel;
+  }
+
+  template <typename Sample>
+  void add_pixel_sample(const size_t row, const size_t col,
+                        const Sample &sample) {
+    debug_assert(row < m_height, "row ({}) >= m_height ({})", row, m_height);
+    debug_assert(col < m_width, "col ({}) >= m_width ({})", col, m_width);
+    m_pixels[row * m_width + col].add_sample(sample);
   }
 
   // TODO: Consider allowing global tone-mapping:
   // https://64.github.io/tonemapping
-  void write_png(const std::string_view &filename,
-                 const std::function<vec3(const Pixel &pixel)> &to_pixel =
-                     gamma_correct_pixel<true>) {
+  template <bool gamma_correct = true>
+  void write_png(const std::string_view &filename) const {
     std::vector<unsigned char> gamma_corrected_data(3 * m_width * m_height);
     for (size_t i = 0; i < m_width * m_height; ++i) {
-      const RGBByte rgb_pixel = to_bytes(to_pixel(m_pixels[i]));
+      const RGBByte rgb_pixel =
+          to_bytes(gamma_correct_pixel<gamma_correct>(m_pixels[i].to_pixel()));
       gamma_corrected_data[3 * i + 0] = rgb_pixel[0];
       gamma_corrected_data[3 * i + 1] = rgb_pixel[1];
       gamma_corrected_data[3 * i + 2] = rgb_pixel[2];
@@ -64,8 +69,24 @@ template <typename Pixel> struct Image {
 
     const int result = stbi_write_png(filename.data(), m_width, m_height, 3,
                                       gamma_corrected_data.data(), 3 * m_width);
-    debug_assert(result != 0, "write_png({}) failed", filename);
+    debug_assert(result != 0, "write_png({}) failed: is the location writable?",
+                 filename);
   }
 };
 
-using RGBImage = Image<glm::vec3>;
+struct RGBPixel {
+  vec3 m_data;
+  real m_num_samples = 0;
+
+  constexpr RGBPixel(const vec3 &data = vec3(0.0, 0.0, 0.0)) : m_data(data) {}
+  inline void add_sample(const vec3 &sample) {
+    m_data += sample;
+    m_num_samples += 1;
+  }
+  inline vec3 to_pixel() const {
+    debug_assert(m_num_samples > 0, "m_num_samples ({}) == 0", m_num_samples);
+    return m_data / m_num_samples;
+  }
+};
+
+using RGBImage = Image<RGBPixel>;

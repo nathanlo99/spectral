@@ -5,19 +5,15 @@
 
 int main() {
   RGBImage image(640, 480);
-  RNG random;
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
-      vec3 pixel(0.0, 0.0, 0.0);
-      real num_samples = 0.0;
+      RNG random(row * image.m_width + col);
       for (size_t sample = 0; sample < 1000; ++sample) {
         const vec3 sample_pixel = random.random_vec3();
-        pixel += sample_pixel;
-        ++num_samples;
+        image.add_pixel_sample(row, col, sample_pixel);
       }
-      image.set_pixel(row, col, pixel / num_samples);
     }
   }
 
-  image.write_png("output/blank.png", gamma_correct_pixel<false>);
+  image.write_png<false>("output/blank.png");
 }
