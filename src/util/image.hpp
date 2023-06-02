@@ -12,7 +12,7 @@ constexpr inline real gamma_correct_real(const real d) {
 
 constexpr inline unsigned char to_byte(const real d) { return 255.99 * d; }
 
-inline RGBByte to_bytes(const vec3 &pixel) {
+constexpr inline RGBByte to_bytes(const vec3 &pixel) {
   RGBByte result;
   result[0] = to_byte(std::clamp<real>(pixel[0], 0.0, 1.0));
   result[1] = to_byte(std::clamp<real>(pixel[1], 0.0, 1.0));
@@ -79,12 +79,13 @@ struct RGBPixel {
   real m_num_samples = 0;
 
   constexpr RGBPixel(const vec3 &data = vec3(0.0, 0.0, 0.0)) : m_data(data) {}
-  inline void add_sample(const vec3 &sample) {
+  constexpr inline void add_sample(const vec3 &sample) {
     m_data += sample;
     m_num_samples += 1;
   }
-  inline vec3 to_pixel() const {
-    debug_assert(m_num_samples > 0, "m_num_samples ({}) == 0", m_num_samples);
+  constexpr inline vec3 to_pixel() const {
+    if (m_num_samples == 0)
+      return vec3(0.0);
     return m_data / m_num_samples;
   }
 };

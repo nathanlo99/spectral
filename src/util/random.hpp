@@ -10,16 +10,34 @@ struct RNG {
 
   RNG(size_t seed = 0) : generator(seed) {}
 
-  inline real random_real() {
-    boost::random::uniform_real_distribution<real> dist(0.0, 1.0);
+  inline real random_real(const real min = 0.0, const real max = 1.0) {
+    boost::random::uniform_real_distribution<real> dist(min, max);
     return dist(generator);
   }
 
-  inline vec3 random_vec3() {
+  inline vec2 random_vec2(const real min = 0.0, const real max = 1.0) {
     // NOTE: Avoid inlining calls to ensure the order of evaluation is fixed
-    const real x = random_real();
-    const real y = random_real();
-    const real z = random_real();
+    const real x = random_real(min, max);
+    const real y = random_real(min, max);
+    return vec2(x, y);
+  }
+
+  inline vec3 random_vec3(const real min = 0.0, const real max = 1.0) {
+    // NOTE: Avoid inlining calls to ensure the order of evaluation is fixed
+    const real x = random_real(min, max);
+    const real y = random_real(min, max);
+    const real z = random_real(min, max);
     return vec3(x, y, z);
+  }
+
+  inline vec3 random_in_unit_sphere() {
+    while (true) {
+      if (vec3 p = random_vec3(-1.0, 1.0); glm::length2(p) <= 1.0)
+        return p;
+    }
+  }
+
+  inline vec3 random_unit_vec3() {
+    return glm::normalize(random_in_unit_sphere());
   }
 };

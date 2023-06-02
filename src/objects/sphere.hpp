@@ -9,7 +9,8 @@ struct Sphere : Hittable {
   vec3 center = vec3(0.0);
   real radius = 1.0;
 
-  Sphere(vec3 center, real radius) : center(center), radius(radius){};
+  constexpr Sphere(const vec3 &center, const real radius)
+      : center(center), radius(radius) {}
   virtual ~Sphere() {}
 
   virtual bool hit(const Ray &ray, real t_min, real t_max,

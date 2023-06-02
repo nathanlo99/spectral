@@ -4,9 +4,9 @@
 bool Sphere::hit(const Ray &ray, real t_min, real t_max,
                  HitRecord &record) const {
   const vec3 oc = ray.origin - center;
-  const real a = glm::dot(ray.direction, ray.direction);
+  const real a = glm::length2(ray.direction);
   const real half_b = glm::dot(oc, ray.direction);
-  const real c = glm::dot(oc, oc) - radius * radius;
+  const real c = glm::length2(oc) - radius * radius;
 
   const real discriminant = half_b * half_b - a * c;
   if (discriminant < 0)
@@ -23,7 +23,7 @@ bool Sphere::hit(const Ray &ray, real t_min, real t_max,
 
   record.t = root;
   record.p = ray.at(record.t);
-  vec3 outward_normal = (record.p - center) / radius;
+  const vec3 outward_normal = (record.p - center) / radius;
   record.set_face_normal(ray, outward_normal);
 
   return true;
