@@ -40,4 +40,10 @@ struct RNG {
   inline vec3 random_unit_vec3() {
     return glm::normalize(random_in_unit_sphere());
   }
+
+  inline vec3 random_in_hemisphere(const vec3 &normal) {
+    const vec3 in_unit_sphere = random_in_unit_sphere();
+    return glm::dot(in_unit_sphere, normal) > 0.0 ? in_unit_sphere
+                                                  : -in_unit_sphere;
+  }
 };

@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 
+struct HitRecord;
+
 struct HittableList : Hittable {
   HittableList() {}
   HittableList(std::shared_ptr<Hittable> object) { add(object); }

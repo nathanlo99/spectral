@@ -14,18 +14,8 @@ struct Camera {
 
   real m_pixel_size = 0.0;
 
-  constexpr Camera(const vec3 &pos, const vec3 &look_at,
-                   const vec3 &up = vec3(0.0, 1.0, 0.0))
-      : pos(pos), forward(glm::normalize(look_at - pos)),
-        right(glm::normalize(glm::cross(forward, up))),
-        up(glm::cross(right, forward)) {
-
-    fmt::println("Camera: pos     = {}\n\tforward = {}\n\tright   = "
-                 "{}\n\tup      = {}",
-                 pos, forward, right, up);
-
-    update_constants();
-  }
+  Camera(const vec3 &pos, const vec3 &look_at,
+         const vec3 &up = vec3(0.0, 1.0, 0.0));
 
   template <typename Pixel>
   constexpr inline void set_output_image(const Image<Pixel> &image) {
@@ -34,22 +24,7 @@ struct Camera {
     update_constants();
   }
 
-  constexpr inline void set_fov(const real fov) {
-    vertical_fov = fov;
-    update_constants();
-  }
-
-  constexpr inline void update_constants() {
-    const real near_plane_height =
-        2.0f * std::tan(glm::radians(vertical_fov) * 0.5f);
-    m_pixel_size = near_plane_height / image_height;
-  }
-
-  inline Ray get_ray(const vec2 pixel) const {
-    const real x = pixel.x, y = pixel.y;
-    const vec3 direction = forward +
-                           (x - image_width / 2.0f) * m_pixel_size * right +
-                           (image_height / 2.0f - y) * m_pixel_size * up;
-    return Ray(pos, glm::normalize(direction));
-  }
+  void set_fov(const real fov);
+  void update_constants();
+  Ray get_ray(const vec2 pixel) const;
 };

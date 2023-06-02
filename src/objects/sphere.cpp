@@ -1,5 +1,6 @@
 
 #include "sphere.hpp"
+#include "hit_record.hpp"
 
 bool Sphere::hit(const Ray &ray, real t_min, real t_max,
                  HitRecord &record) const {
@@ -25,6 +26,7 @@ bool Sphere::hit(const Ray &ray, real t_min, real t_max,
   record.p = ray.at(record.t);
   const vec3 outward_normal = (record.p - center) / radius;
   record.set_face_normal(ray, outward_normal);
+  record.material = material;
 
   return true;
 }

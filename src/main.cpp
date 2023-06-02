@@ -2,6 +2,8 @@
 #include <cstddef>
 
 #include "fmt/core.h"
+#include "materials/diffuse_material.hpp"
+#include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
 #include "objects/sphere.hpp"
 #include "scene/camera.hpp"
@@ -10,23 +12,27 @@
 #include "util/random.hpp"
 #include "util/timer.hpp"
 
+constexpr vec3 get_background_colour(const Ray &ray) {
+  const real t = 0.5 * (ray.direction.y + 1.0);
+  return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+}
+
 vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
                 const Scene &scene) {
   if (remaining_depth == 0)
     return vec3(0.0);
 
   HitRecord record;
-  if (scene.world.hit(r, 0.001, INFINITY, record)) {
-    const vec3 normal = record.normal;
-    const vec3 new_direction =
-        glm::normalize(normal + random.random_unit_vec3());
-    const vec3 reflected_colour = ray_colour(
-        random, remaining_depth - 1, Ray(record.p, new_direction), scene);
-    return 0.5 * reflected_colour;
-  }
-  const vec3 unit_direction = glm::normalize(r.direction);
-  const real t = 0.5 * (unit_direction.y + 1.0);
-  return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+  if (!scene.world.hit(r, 0.001, INFINITY, record))
+    return get_background_colour(r);
+
+  Ray scattered;
+  vec3 attenuation;
+  if (!record.material->scatter(random, r, record, attenuation, scattered))
+    return vec3(0.0);
+
+  return attenuation *
+         ray_colour(random, remaining_depth - 1, scattered, scene);
 }
 
 int main() {
@@ -35,11 +41,14 @@ int main() {
   camera.vertical_fov = 90;
   camera.set_output_image(image);
 
-  Scene scene(camera);
-  scene.add(std::make_shared<Sphere>(vec3(0.0, 0.0, -1.0), 0.5));
-  scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, -1.0), 100.0));
+  std::shared_ptr<Material> material =
+      std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
 
-  const size_t max_depth = 50, num_samples = 1;
+  Scene scene(camera);
+  scene.add(std::make_shared<Sphere>(vec3(0.0, 0.0, -1.0), 0.5, material));
+  scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, -1.0), 100.0, material));
+
+  const size_t max_depth = 50, num_samples = 10000;
   const size_t total_samples = image.m_width * image.m_height * num_samples;
   size_t current_sample = 0;
   const Timer timer;
@@ -55,6 +64,8 @@ int main() {
         ++current_sample;
       }
     }
+
+    image.write_png("output/progress.png");
 
     fmt::print(
         "\33[2K\rProgress: {:.2f}% [sample {}/{}, elapsed_time: {:.2f}s]",

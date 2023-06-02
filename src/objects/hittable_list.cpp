@@ -1,5 +1,6 @@
 
 #include "hittable_list.hpp"
+#include "hit_record.hpp"
 
 bool HittableList::hit(const Ray &ray, real t_min, real t_max,
                        HitRecord &record) const {
