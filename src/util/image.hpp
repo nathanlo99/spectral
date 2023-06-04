@@ -75,29 +75,34 @@ template <typename Pixel> struct Image {
 };
 
 struct RGBPixel {
-  vec3 m_data;
+  vec3 m_mean = vec3(0.0);
   real m_num_samples = 0;
 
-  constexpr RGBPixel(const vec3 &data = vec3(0.0, 0.0, 0.0)) : m_data(data) {}
-  constexpr inline void add_sample(const vec3 &sample) {
-    m_data += sample;
+  constexpr RGBPixel() {}
+  constexpr RGBPixel(const vec3 &data) : m_mean(data), m_num_samples(1) {}
+
+  constexpr inline void add_sample(const vec3 &_sample) {
+    const vec3 sample = remove_nans(_sample);
     m_num_samples += 1;
+    m_mean += (sample - m_mean) / m_num_samples;
   }
-  constexpr inline vec3 to_pixel() const {
-    if (m_num_samples == 0)
-      return vec3(0.0);
-    return m_data / m_num_samples;
-  }
+  constexpr inline vec3 to_pixel() const { return m_mean; }
 };
 
-struct RGBStddevPixel {
+struct RGBVariancePixel {
   vec3 m_mean;
   vec3 m_variance = vec3(0.0);
   real m_num_samples = 0;
 
-  constexpr RGBStddevPixel(const vec3 &data = vec3(0.0, 0.0, 0.0))
+  constexpr RGBVariancePixel(const vec3 &data = vec3(0.0, 0.0, 0.0))
       : m_mean(data), m_variance(0.0) {}
-  constexpr inline void add_sample(const vec3 &sample) {
+  constexpr inline void add_sample(const vec3 &_sample) {
+    const vec3 sample = remove_nans(_sample);
+    if (m_num_samples == 0) {
+      m_mean = sample;
+      m_num_samples = 1.0;
+      return;
+    }
     const vec3 old_mean = m_mean;
     m_num_samples += 1;
     m_mean += (sample - m_mean) / m_num_samples;
@@ -106,9 +111,9 @@ struct RGBStddevPixel {
   constexpr inline vec3 to_pixel() const {
     if (m_num_samples == 0)
       return vec3(0.0);
-    return glm::sqrt(m_variance / m_num_samples);
+    return m_variance / m_num_samples;
   }
 };
 
 using RGBImage = Image<RGBPixel>;
-using RGBStddevImage = Image<RGBStddevPixel>;
+using RGBVarianceImage = Image<RGBVariancePixel>;

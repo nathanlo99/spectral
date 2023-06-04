@@ -37,7 +37,7 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
 }
 
 int main() {
-  RGBImage image(800, 450);
+  RGBVarianceImage image(800, 450);
   Camera camera(vec3(0.0, 0.0, 1.5), vec3(0.0, 0.0, 0.0));
   camera.vertical_fov = 70;
   camera.set_output_image(image);
