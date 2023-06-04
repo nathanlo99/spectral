@@ -1,5 +1,5 @@
 
-#include "metal_material.hpp"
+#include "reflective_material.hpp"
 #include "objects/hit_record.hpp"
 
 bool ReflectiveMaterial::scatter(RNG &random, const Ray &ray,

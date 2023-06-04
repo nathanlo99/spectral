@@ -90,4 +90,25 @@ struct RGBPixel {
   }
 };
 
+struct RGBStddevPixel {
+  vec3 m_mean;
+  vec3 m_variance = vec3(0.0);
+  real m_num_samples = 0;
+
+  constexpr RGBStddevPixel(const vec3 &data = vec3(0.0, 0.0, 0.0))
+      : m_mean(data), m_variance(0.0) {}
+  constexpr inline void add_sample(const vec3 &sample) {
+    const vec3 old_mean = m_mean;
+    m_num_samples += 1;
+    m_mean += (sample - m_mean) / m_num_samples;
+    m_variance += (sample - old_mean) * (sample - m_mean);
+  }
+  constexpr inline vec3 to_pixel() const {
+    if (m_num_samples == 0)
+      return vec3(0.0);
+    return glm::sqrt(m_variance / m_num_samples);
+  }
+};
+
 using RGBImage = Image<RGBPixel>;
+using RGBStddevImage = Image<RGBStddevPixel>;

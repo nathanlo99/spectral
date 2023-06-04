@@ -3,7 +3,7 @@
 
 #include "fmt/core.h"
 #include "materials/diffuse_material.hpp"
-#include "materials/metal_material.hpp"
+#include "materials/reflective_material.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
 #include "objects/sphere.hpp"
@@ -49,11 +49,11 @@ int main() {
 
   Scene scene(camera);
   scene.add(
-      std::make_shared<Sphere>(vec3(0.0, 0.0, 0.0), 0.5, diffuse_material));
+      std::make_shared<Sphere>(vec3(0.0, 0.0, 0.0), 0.5, reflective_material));
   scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, 0.0), 100.0,
                                      diffuse_material));
 
-  const size_t max_depth = 50, samples_per_pixel = 100;
+  const size_t max_depth = 50, samples_per_pixel = 200;
   const size_t total_samples =
       image.m_width * image.m_height * samples_per_pixel;
   size_t num_samples = 0;
