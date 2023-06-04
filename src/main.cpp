@@ -3,6 +3,7 @@
 
 #include "fmt/core.h"
 #include "materials/diffuse_material.hpp"
+#include "materials/metal_material.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
 #include "objects/sphere.hpp"
@@ -37,40 +38,44 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
 
 int main() {
   RGBImage image(800, 450);
-  Camera camera(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0));
-  camera.vertical_fov = 90;
+  Camera camera(vec3(0.0, 0.0, 1.5), vec3(0.0, 0.0, 0.0));
+  camera.vertical_fov = 70;
   camera.set_output_image(image);
 
-  std::shared_ptr<Material> material =
+  std::shared_ptr<Material> diffuse_material =
       std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
+  std::shared_ptr<Material> reflective_material =
+      std::make_shared<ReflectiveMaterial>(vec3(0.8, 0.8, 0.8), 0);
 
   Scene scene(camera);
-  scene.add(std::make_shared<Sphere>(vec3(0.0, 0.0, -1.0), 0.5, material));
-  scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, -1.0), 100.0, material));
+  scene.add(
+      std::make_shared<Sphere>(vec3(0.0, 0.0, 0.0), 0.5, diffuse_material));
+  scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, 0.0), 100.0,
+                                     diffuse_material));
 
-  const size_t max_depth = 50, num_samples = 10000;
-  const size_t total_samples = image.m_width * image.m_height * num_samples;
-  size_t current_sample = 0;
+  const size_t max_depth = 50, samples_per_pixel = 100;
+  const size_t total_samples =
+      image.m_width * image.m_height * samples_per_pixel;
+  size_t num_samples = 0;
   const Timer timer;
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
-      const vec2 pixel = vec2(col, row);
+      const vec2 pixel = vec2(col + 0.5, row + 0.5);
       RNG random(row * image.m_width + col);
-      for (size_t sample = 0; sample < num_samples; ++sample) {
-        const vec2 jitter = random.random_vec2(0.0, 1.0);
+      for (size_t sample = 0; sample < samples_per_pixel; ++sample) {
+        const vec2 jitter = random.random_vec2(-0.5, 0.5);
         const Ray ray = camera.get_ray(pixel + jitter);
         image.add_pixel_sample(row, col,
                                ray_colour(random, max_depth, ray, scene));
-        ++current_sample;
+        ++num_samples;
       }
     }
 
-    image.write_png("output/progress.png");
-
-    fmt::print(
-        "\33[2K\rProgress: {:.2f}% [sample {}/{}, elapsed_time: {:.2f}s]",
-        100.0 * current_sample / total_samples, current_sample, total_samples,
-        timer.elapsed_seconds());
+    fmt::print("\33[2K\rProgress: {:.2f}% [sample {}/{}, elapsed_time: "
+               "{:.2f}s, samples_per_sec: {:.2f}M]",
+               100.0 * num_samples / total_samples, num_samples, total_samples,
+               timer.elapsed_seconds(),
+               num_samples / timer.elapsed_seconds() / 1e6);
     std::cout << std::flush;
   }
 
