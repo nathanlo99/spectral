@@ -37,7 +37,7 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
 }
 
 int main() {
-  RGBVarianceImage image(800, 450);
+  RGBImage image(640, 480);
   Camera camera(vec3(0.0, 0.0, 1.5), vec3(0.0, 0.0, 0.0));
   camera.vertical_fov = 70;
   camera.set_output_image(image);
@@ -53,7 +53,7 @@ int main() {
   scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, 0.0), 100.0,
                                      diffuse_material));
 
-  const size_t max_depth = 50, samples_per_pixel = 200;
+  const size_t max_depth = 50, samples_per_pixel = 100;
   const size_t total_samples =
       image.m_width * image.m_height * samples_per_pixel;
   size_t num_samples = 0;
