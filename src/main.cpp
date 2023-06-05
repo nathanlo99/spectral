@@ -45,7 +45,7 @@ int main() {
   std::shared_ptr<Material> diffuse_material =
       std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
   std::shared_ptr<Material> reflective_material =
-      std::make_shared<ReflectiveMaterial>(vec3(0.8, 0.8, 0.8), 0);
+      std::make_shared<ReflectiveMaterial>(vec3(0.8, 0.8, 0.8), 0.1);
 
   Scene scene(camera);
   scene.add(
