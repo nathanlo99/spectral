@@ -6,7 +6,7 @@ project(spectral)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -g -Ofast -ffast-math -Wno-gnu-zero-variadic-macro-arguments")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Ofast -march=native -ffast-math -Wno-gnu-zero-variadic-macro-arguments")
 set(CMAKE_EXE_LINKER_FLAGS "-pthread -flto -Ofast")
 
 # Pull in fmt

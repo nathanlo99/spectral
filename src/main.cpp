@@ -2,6 +2,7 @@
 #include <cstddef>
 
 #include "fmt/core.h"
+#include "materials/dielectric_material.hpp"
 #include "materials/diffuse_material.hpp"
 #include "materials/reflective_material.hpp"
 #include "objects/hit_record.hpp"
@@ -37,24 +38,32 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
 }
 
 int main() {
-  RGBImage image(640, 480);
+  RGBImage image(800, 480);
   RGBVarianceImage variance_image(image.m_width, image.m_height);
   Camera camera(vec3(0.0, 0.0, 1.5), vec3(0.0, 0.0, 0.0));
   camera.vertical_fov = 70;
   camera.set_output_image(image);
 
-  std::shared_ptr<Material> diffuse_material =
-      std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
-  std::shared_ptr<Material> reflective_material =
-      std::make_shared<ReflectiveMaterial>(vec3(0.8, 0.8, 0.8), 0.1);
+  const auto material_ground =
+      std::make_shared<DiffuseMaterial>(vec3(0.8, 0.8, 0.0));
+  const auto material_center =
+      std::make_shared<DiffuseMaterial>(vec3(0.1, 0.2, 0.5));
+  const auto material_left =
+      std::make_shared<DielectricMaterial>(vec3(1.0, 1.0, 1.0), 1.5);
+  const auto material_right =
+      std::make_shared<ReflectiveMaterial>(vec3(0.8, 0.6, 0.2), 1.0);
 
   Scene scene(camera);
+  scene.add(std::make_shared<Sphere>(vec3(-1.0, 0.0, 0.0), 0.5, material_left));
   scene.add(
-      std::make_shared<Sphere>(vec3(0.0, 0.0, 0.0), 0.5, reflective_material));
-  scene.add(std::make_shared<Sphere>(vec3(0.0, -100.5, 0.0), 100.0,
-                                     diffuse_material));
+      std::make_shared<Sphere>(vec3(-1.0, 0.0, 0.0), -0.499, material_left));
+  scene.add(
+      std::make_shared<Sphere>(vec3(0.0, 0.0, 0.0), 0.5, material_center));
+  scene.add(std::make_shared<Sphere>(vec3(1.0, 0.0, 0.0), 0.5, material_right));
+  scene.add(
+      std::make_shared<Sphere>(vec3(0.0, -100.5, 0.0), 100.0, material_ground));
 
-  const size_t max_depth = 50, samples_per_pixel = 500;
+  const size_t max_depth = 50, samples_per_pixel = 100;
   const size_t total_samples =
       image.m_width * image.m_height * samples_per_pixel;
   size_t num_samples = 0;

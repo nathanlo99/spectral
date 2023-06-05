@@ -3,7 +3,7 @@
 
 #include "objects/hit_record.hpp"
 
-bool DiffuseMaterial::scatter(RNG &random, const Ray &ray,
+bool DiffuseMaterial::scatter(RNG &random, const Ray &ray [[maybe_unused]],
                               const HitRecord &record, vec3 &attenuation,
                               Ray &scattered) const {
   const vec3 scatter_direction = record.normal + random.random_unit_vec3();

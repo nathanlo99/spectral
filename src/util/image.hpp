@@ -90,7 +90,7 @@ struct RGBPixel {
 };
 
 struct RGBVariancePixel {
-  vec3 m_mean;
+  vec3 m_mean = vec3(0.0);
   vec3 m_variance = vec3(0.0);
   real m_num_samples = 0;
 

@@ -10,9 +10,11 @@ struct RNG {
 
   RNG(size_t seed = 0) : generator(seed) {}
 
-  inline bool random_bool() {
-    boost::random::uniform_int_distribution<> dist(0, 1);
-    return dist(generator) == 1;
+  inline bool random_bool(const real success_probability = 0.5) {
+    debug_assert(
+        0.0 <= success_probability && success_probability <= 1.0,
+        "Probability supplied to random_bool(p) was not between 0 and 1");
+    return random_real(0.0, 1.0) < success_probability;
   }
 
   inline real random_real(const real min = 0.0, const real max = 1.0) {
