@@ -45,4 +45,13 @@ struct BVH : public Hittable {
   virtual BoundingBox bounding_box() const override { return nodes[0].box; }
 
   void debug_print() const;
+
+  virtual std::vector<std::shared_ptr<Hittable>> children() override {
+    std::vector<std::shared_ptr<Hittable>> result;
+    for (const auto &primitive : primitives) {
+      const auto children = primitive->children();
+      result.insert(result.end(), children.begin(), children.end());
+    }
+    return result;
+  }
 };

@@ -12,4 +12,6 @@ public:
   virtual bool hit(const Ray &r, real t_min, real t_max,
                    HitRecord &rec) const = 0;
   virtual BoundingBox bounding_box() const = 0;
+
+  virtual std::vector<std::shared_ptr<Hittable>> children() = 0;
 };
