@@ -11,8 +11,7 @@ struct BVH : public Hittable {
   struct BVHNode {
     BoundingBox box;
     size_t axis = 0;
-    size_t left_child = -1, right_child = -1;
-    size_t primitive_idx = -1;
+    size_t index = -1;
     bool is_leaf = true;
   };
   std::vector<BVHNode> nodes;
@@ -21,7 +20,8 @@ struct BVH : public Hittable {
   BVH(const std::vector<std::shared_ptr<Hittable>> &primitives)
       : primitives(primitives) {
     Timer timer;
-    construct(0, primitives.size());
+    nodes.emplace_back();
+    construct(0, 0, primitives.size());
     const real elapsed_seconds = timer.elapsed_seconds();
     fmt::println("Constructed BVH on {} nodes in {:.3f} seconds", nodes.size(),
                  elapsed_seconds);
@@ -33,8 +33,7 @@ struct BVH : public Hittable {
 
   // Recursively constructs a BVH with the primitives in indices [start, end),
   // and places the relevant information at index node_index.
-  // Returns the new node.
-  size_t construct(const size_t start, const size_t end);
+  void construct(const size_t node_idx, const size_t start, const size_t end);
 
   virtual bool hit(const Ray &ray, real t_min, real t_max,
                    HitRecord &record) const override;
