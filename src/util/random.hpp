@@ -39,7 +39,16 @@ struct RNG {
 
   inline vec3 random_in_unit_sphere() {
     while (true) {
-      if (vec3 p = random_vec3(-1.0, 1.0); glm::length2(p) <= 1.0)
+      const vec3 p = random_vec3(-1.0, 1.0);
+      if (glm::length2(p) <= 1.0)
+        return p;
+    }
+  }
+
+  inline vec2 random_vec2_in_unit_disk() {
+    while (true) {
+      const vec2 p = random_vec2(-1.0, 1.0);
+      if (glm::length2(p) <= 1.0)
         return p;
     }
   }

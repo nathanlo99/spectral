@@ -30,3 +30,7 @@ bool Sphere::hit(const Ray &ray, real t_min, real t_max,
 
   return true;
 }
+
+BoundingBox Sphere::bounding_box() const {
+  return BoundingBox(center - vec3(radius), center + vec3(radius));
+}

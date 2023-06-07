@@ -5,6 +5,7 @@
 #include "materials/dielectric_material.hpp"
 #include "materials/diffuse_material.hpp"
 #include "materials/reflective_material.hpp"
+#include "objects/bvh.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
 #include "objects/sphere.hpp"
@@ -37,33 +38,70 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
          ray_colour(random, remaining_depth - 1, scattered, scene);
 }
 
+std::shared_ptr<Hittable> random_scene(RNG &random) {
+  std::shared_ptr<HittableList> world = std::make_shared<HittableList>();
+
+  auto ground_material = std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
+  world->add(
+      std::make_shared<Sphere>(vec3(0, -1000, 0), 1000, ground_material));
+
+  for (int a = -11; a < 11; a++) {
+    for (int b = -11; b < 11; b++) {
+      auto choose_mat = random.random_real();
+      vec3 center(a + 0.9 * random.random_real(), 0.2,
+                  b + 0.9 * random.random_real());
+
+      if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+        std::shared_ptr<Material> sphere_material;
+
+        if (choose_mat < 0.8) {
+          // diffuse
+          const vec3 albedo = random.random_vec3() * random.random_vec3();
+          sphere_material = std::make_shared<DiffuseMaterial>(albedo);
+          world->add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+        } else if (choose_mat < 0.95) {
+          // metal
+          const vec3 albedo = random.random_vec3(0.5, 1.0);
+          const real fuzz = random.random_real(0, 0.5);
+          sphere_material = std::make_shared<ReflectiveMaterial>(albedo, fuzz);
+          world->add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+        } else {
+          // glass
+          sphere_material =
+              std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
+          world->add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+        }
+      }
+    }
+  }
+
+  auto material1 = std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
+  world->add(std::make_shared<Sphere>(vec3(0, 1, 0), 1.0, material1));
+
+  auto material2 = std::make_shared<DiffuseMaterial>(vec3(0.4, 0.2, 0.1));
+  world->add(std::make_shared<Sphere>(vec3(-4, 1, 0), 1.0, material2));
+
+  auto material3 =
+      std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
+  world->add(std::make_shared<Sphere>(vec3(4, 1, 0), 1.0, material3));
+
+  return std::make_shared<BVH>(world->objects);
+}
+
 int main() {
-  RGBImage image(800, 480);
+  RGBImage image(1200, 800);
   RGBVarianceImage variance_image(image.m_width, image.m_height);
-  Camera camera(vec3(0.0, 0.0, 1.5), vec3(0.0, 0.0, 0.0));
-  camera.vertical_fov = 70;
+  const vec3 camera_position(13.0, 2.0, 3.0);
+  const vec3 camera_target(0.0, 0.0, 0.0);
+  Camera camera(camera_position, camera_target, vec3(0.0, 1.0, 0.0), 0.05);
+  camera.vertical_fov = 25;
   camera.set_output_image(image);
 
-  const auto material_ground =
-      std::make_shared<DiffuseMaterial>(vec3(0.8, 0.8, 0.0));
-  const auto material_center =
-      std::make_shared<DiffuseMaterial>(vec3(0.1, 0.2, 0.5));
-  const auto material_left =
-      std::make_shared<DielectricMaterial>(vec3(1.0, 1.0, 1.0), 1.5);
-  const auto material_right =
-      std::make_shared<ReflectiveMaterial>(vec3(0.8, 0.6, 0.2), 1.0);
-
   Scene scene(camera);
-  scene.add(std::make_shared<Sphere>(vec3(-1.0, 0.0, 0.0), 0.5, material_left));
-  scene.add(
-      std::make_shared<Sphere>(vec3(-1.0, 0.0, 0.0), -0.499, material_left));
-  scene.add(
-      std::make_shared<Sphere>(vec3(0.0, 0.0, 0.0), 0.5, material_center));
-  scene.add(std::make_shared<Sphere>(vec3(1.0, 0.0, 0.0), 0.5, material_right));
-  scene.add(
-      std::make_shared<Sphere>(vec3(0.0, -100.5, 0.0), 100.0, material_ground));
+  RNG random;
+  scene.add(random_scene(random));
 
-  const size_t max_depth = 50, samples_per_pixel = 100;
+  const size_t max_depth = 50, samples_per_pixel = 500;
   const size_t total_samples =
       image.m_width * image.m_height * samples_per_pixel;
   size_t num_samples = 0;
@@ -76,27 +114,30 @@ int main() {
       RNG random(row * image.m_width + col);
       for (size_t sample = 0; sample < samples_per_pixel; ++sample) {
         const vec2 jitter = random.random_vec2(-0.5, 0.5);
-        const Ray ray = camera.get_ray(pixel + jitter);
+        const Ray ray = camera.get_ray(pixel + jitter, random);
         const vec3 colour = ray_colour(random, max_depth, ray, scene);
         image.add_pixel_sample(row, col, colour);
         variance_image.add_pixel_sample(row, col, colour);
         ++num_samples;
       }
-    }
 
-    if (timer.seconds_since_last_update() >= 1.0) {
-      timer.update();
-      image.write_png<true>("output/progress.png");
-      num_progress_updates++;
-    }
+      if (timer.seconds_since_last_update("progress_image") >= 1.0) {
+        timer.update("progress_image");
+        image.write_png<true>("output/progress.png");
+        num_progress_updates++;
+      }
 
-    fmt::print("\33[2K\rProgress: {:.2f}% [sample {}/{}, elapsed_time: "
-               "{:.2f}s, samples_per_sec: {:.2f}M, num_progress_updates: {}]",
-               100.0 * num_samples / total_samples, num_samples, total_samples,
-               timer.elapsed_seconds(),
-               num_samples / timer.elapsed_seconds() / 1e6,
-               num_progress_updates);
-    std::cout << std::flush;
+      if (timer.seconds_since_last_update("print_progress") >= 0.1) {
+        timer.update("print_progress");
+        fmt::print(
+            "\33[2K\rProgress: {:.2f}% [sample {}/{}, elapsed_time: "
+            "{:.2f}s, samples_per_sec: {:.2f}M, num_progress_updates: {}]",
+            100.0 * num_samples / total_samples, num_samples, total_samples,
+            timer.elapsed_seconds(),
+            num_samples / timer.elapsed_seconds() / 1e6, num_progress_updates);
+        std::cout << std::flush;
+      }
+    }
   }
 
   image.write_png<true>("output/progress.png");
