@@ -45,12 +45,9 @@ struct BVH : public Hittable {
 
   void debug_print() const;
 
-  virtual std::vector<std::shared_ptr<Hittable>> children() override {
-    std::vector<std::shared_ptr<Hittable>> result;
-    for (const auto &primitive : primitives) {
-      const auto children = primitive->children();
-      result.insert(result.end(), children.begin(), children.end());
-    }
-    return result;
+  virtual void
+  children(std::vector<std::shared_ptr<Hittable>> &result) override {
+    for (const auto &primitive : primitives)
+      primitive->children(result);
   }
 };

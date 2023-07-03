@@ -28,12 +28,9 @@ struct HittableList : public Hittable {
   virtual bool hit(const Ray &ray, real t_min, real t_max,
                    HitRecord &record) const override;
   virtual BoundingBox bounding_box() const override { return box; }
-  virtual std::vector<std::shared_ptr<Hittable>> children() override {
-    std::vector<std::shared_ptr<Hittable>> result;
-    for (const auto &object : objects) {
-      const auto children = object->children();
-      result.insert(result.end(), children.begin(), children.end());
-    }
-    return result;
+  virtual void
+  children(std::vector<std::shared_ptr<Hittable>> &result) override {
+    for (const auto &object : objects)
+      object->children(result);
   }
 };

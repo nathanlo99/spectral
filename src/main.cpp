@@ -8,6 +8,7 @@
 #include "objects/bvh.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
+#include "objects/sdf.hpp"
 #include "objects/sphere.hpp"
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
@@ -26,7 +27,7 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
     return vec3(0.0);
 
   HitRecord record;
-  if (!scene.world.hit(r, 0.001, INFINITY, record))
+  if (!scene.world.hit(r, 0.0001, 99999, record))
     return get_background_colour(r);
 
   Ray scattered;
@@ -85,6 +86,26 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
       std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
   world->add(std::make_shared<Sphere>(vec3(4, 1, 0), 1.0, material3));
 
+  /*
+  auto blue_material = std::make_shared<DiffuseMaterial>(vec3(0.3, 0.3, 1.0));
+  auto sdf = [](const vec3 &pos) {
+    return glm::length(pos - vec3(0.0, 0.5, 0.0)) - 0.5;
+  };
+  world->add(std::make_shared<SignedDistanceField>(
+      sdf, blue_material, vec3(-0.5, 0.0, -0.5), vec3(0.5, 1.0, 0.5)));
+
+  auto red_material = std::make_shared<DiffuseMaterial>(vec3(1.0, 0.3, 0.3));
+  auto torus_sdf = [](const vec3 &pos) {
+    const vec3 shifted_pos = pos - vec3(0.0, 0.5, 0.0);
+    return glm::length(
+               vec2(glm::length(vec2(shifted_pos.x, shifted_pos.z)) - 0.5,
+                    shifted_pos.y)) -
+           0.25;
+  };
+  world->add(std::make_shared<SignedDistanceField>(torus_sdf, red_material,
+                                                   vec3(-2.0), vec3(2.0)));
+  */
+
   return std::make_shared<BVH>(world->objects);
 }
 
@@ -101,7 +122,7 @@ int main() {
   RNG random;
   scene.add(random_scene(random));
 
-  const size_t max_depth = 50, samples_per_pixel = 500;
+  const size_t max_depth = 100, samples_per_pixel = 100;
   const size_t total_samples =
       image.m_width * image.m_height * samples_per_pixel;
   size_t num_samples = 0;

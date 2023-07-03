@@ -31,11 +31,12 @@ std::tuple<size_t, real, size_t> BVH::split_and_partition(const size_t start,
 // Returns the new node.
 void BVH::construct(const size_t node_idx, const size_t start,
                     const size_t end) {
+  debug_assert(start < end, "BVH::construct: start >= end");
+
   const size_t left_idx = nodes.size();
   nodes.emplace_back(); // Left child
+  const size_t right_idx = nodes.size();
   nodes.emplace_back(); // Right child
-
-  debug_assert(start < end, "BVH::construct: start >= end");
 
   if (end - start == 1) {
     BVHNode &result = nodes[node_idx];
@@ -51,9 +52,8 @@ void BVH::construct(const size_t node_idx, const size_t start,
   result.axis = axis;
   result.index = left_idx;
   construct(left_idx, start, mid);
-  construct(left_idx + 1, mid, end);
-  result.box =
-      BoundingBox::combine(nodes[left_idx].box, nodes[left_idx + 1].box);
+  construct(right_idx, mid, end);
+  result.box = BoundingBox::combine(nodes[left_idx].box, nodes[right_idx].box);
 
   nodes[node_idx] = result;
 }
@@ -68,6 +68,7 @@ bool BVH::recursive_hit(const Ray &ray, real t_min, real t_max,
   real t_hit_box;
   if (!node.box.does_hit(ray, t_min, t_max, t_hit_box))
     return false;
+  t_min = t_hit_box;
 
   if (node.is_leaf)
     return primitives[node.index]->hit(ray, t_min, t_max, record);
@@ -89,20 +90,17 @@ bool BVH::recursive_hit(const Ray &ray, real t_min, real t_max,
 }
 
 void BVH::debug_print() const {
-  std::cout << "BVH:\n";
+  fmt::println("BVH:");
   for (size_t i = 0; i < nodes.size(); ++i) {
     const BVHNode &node = nodes[i];
     if (node.is_leaf) {
-      std::cout << "Leaf " << i << ":\n";
-      std::cout << "  box: " << node.box << "\n";
-      std::cout << "  primitive_idx: " << node.index << "\n";
+      fmt::println("Leaf {}:\n  box: ({}, {})\n  primitive_idx: {}\n", i,
+                   node.box.min, node.box.max, node.index);
     } else {
-      std::cout << "Non-leaf " << i << ":\n";
-      std::cout << "  axis: " << node.axis << "\n";
-      std::cout << "  box: " << node.box << "\n";
-      std::cout << "  left_child: " << node.index << "\n";
-      std::cout << "  right_child: " << node.index + 1 << "\n";
+      fmt::println("Non-leaf {}:\n  axis: {}\n  box: ({}, {})\n  left_child: "
+                   "{}\n  right_child: {}\n",
+                   i, node.axis, node.box.min, node.box.max, node.index,
+                   node.index + 1);
     }
-    std::cout << std::endl;
   }
 }

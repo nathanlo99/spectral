@@ -10,7 +10,7 @@ bool Sphere::hit(const Ray &ray, real t_min, real t_max,
   const real c = glm::length2(oc) - radius * radius;
 
   const real discriminant = half_b * half_b - a * c;
-  if (discriminant < 0)
+  if (discriminant < 0.0)
     return false;
   const real sqrt_d = std::sqrt(discriminant);
 

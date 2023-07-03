@@ -17,6 +17,11 @@ struct BoundingBox {
     max = glm::min(max, other.max);
   }
 
+  bool contains(const vec3 &point) const {
+    return glm::all(glm::lessThanEqual(min, point)) &&
+           glm::all(glm::lessThanEqual(point, max));
+  }
+
   static BoundingBox combine(const BoundingBox &box1, const BoundingBox &box2) {
     return BoundingBox(glm::min(box1.min, box2.min),
                        glm::max(box1.max, box2.max));
@@ -26,15 +31,13 @@ struct BoundingBox {
                 real &t_result) const {
     real t0 = t_min, t1 = t_max;
     for (int i = 0; i < 3; ++i) {
-      if (near_zero(ray.direction[i]))
-        continue;
       const real inv_d = 1.0 / ray.direction[i];
       real t_near = (min[i] - ray.origin[i]) * inv_d;
       real t_far = (max[i] - ray.origin[i]) * inv_d;
-      if (t_near > t_far)
+      if (inv_d < 0.0)
         std::swap(t_near, t_far);
-      t0 = t_near > t0 ? t_near : t0;
-      t1 = t_far < t1 ? t_far : t1;
+      t0 = std::max(t_near, t0);
+      t1 = std::min(t_far, t1);
       if (t0 > t1)
         return false;
     }
