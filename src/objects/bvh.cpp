@@ -9,7 +9,7 @@ std::tuple<size_t, real, size_t> BVH::split_and_partition(const size_t start,
                                                           const size_t end) {
   BoundingBox box;
   for (size_t i = start; i < end; ++i) {
-    box = BoundingBox::combine(box, primitives[i]->bounding_box());
+    box = BoundingBox::box_union(box, primitives[i]->bounding_box());
   }
 
   const vec3 extent = box.max - box.min;
@@ -33,11 +33,6 @@ void BVH::construct(const size_t node_idx, const size_t start,
                     const size_t end) {
   debug_assert(start < end, "BVH::construct: start >= end");
 
-  const size_t left_idx = nodes.size();
-  nodes.emplace_back(); // Left child
-  const size_t right_idx = nodes.size();
-  nodes.emplace_back(); // Right child
-
   if (end - start == 1) {
     BVHNode &result = nodes[node_idx];
     result.is_leaf = true;
@@ -46,6 +41,11 @@ void BVH::construct(const size_t node_idx, const size_t start,
     return;
   }
 
+  const size_t left_idx = nodes.size();
+  nodes.emplace_back(); // Left child
+  const size_t right_idx = nodes.size();
+  nodes.emplace_back(); // Right child
+
   const auto &[axis, split, mid] = split_and_partition(start, end);
   BVHNode result;
   result.is_leaf = false;
@@ -53,7 +53,8 @@ void BVH::construct(const size_t node_idx, const size_t start,
   result.index = left_idx;
   construct(left_idx, start, mid);
   construct(right_idx, mid, end);
-  result.box = BoundingBox::combine(nodes[left_idx].box, nodes[right_idx].box);
+  result.box =
+      BoundingBox::box_union(nodes[left_idx].box, nodes[right_idx].box);
 
   nodes[node_idx] = result;
 }
@@ -65,10 +66,12 @@ bool BVH::hit(const Ray &ray, real t_min, real t_max, HitRecord &record) const {
 bool BVH::recursive_hit(const Ray &ray, real t_min, real t_max,
                         HitRecord &record, const size_t node_idx) const {
   const BVHNode &node = nodes[node_idx];
-  real t_hit_box;
-  if (!node.box.does_hit(ray, t_min, t_max, t_hit_box))
+
+  const auto t_hit_box = node.box.hit(ray, t_min, t_max);
+  if (!t_hit_box.has_value())
     return false;
-  t_min = t_hit_box;
+
+  t_min = t_hit_box.value();
 
   if (node.is_leaf)
     return primitives[node.index]->hit(ray, t_min, t_max, record);

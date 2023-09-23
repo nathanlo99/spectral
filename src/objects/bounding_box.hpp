@@ -12,7 +12,12 @@ struct BoundingBox {
   BoundingBox() : min(vec3(INFINITY)), max(vec3(-INFINITY)) {}
   BoundingBox(const vec3 &min, const vec3 &max) : min(min), max(max) {}
 
-  void include(const BoundingBox &other) {
+  void union_with(const BoundingBox &other) {
+    min = glm::min(min, other.min);
+    max = glm::max(max, other.max);
+  }
+
+  void intersect_with(const BoundingBox &other) {
     min = glm::max(min, other.min);
     max = glm::min(max, other.max);
   }
@@ -22,13 +27,14 @@ struct BoundingBox {
            glm::all(glm::lessThanEqual(point, max));
   }
 
-  static BoundingBox combine(const BoundingBox &box1, const BoundingBox &box2) {
+  static BoundingBox box_union(const BoundingBox &box1,
+                               const BoundingBox &box2) {
     return BoundingBox(glm::min(box1.min, box2.min),
                        glm::max(box1.max, box2.max));
   }
 
-  bool does_hit(const Ray &ray, const real t_min, const real t_max,
-                real &t_result) const {
+  std::optional<real> hit(const Ray &ray, const real t_min,
+                          const real t_max) const {
     real t0 = t_min, t1 = t_max;
     for (int i = 0; i < 3; ++i) {
       const real inv_d = 1.0 / ray.direction[i];
@@ -39,10 +45,9 @@ struct BoundingBox {
       t0 = std::max(t_near, t0);
       t1 = std::min(t_far, t1);
       if (t0 > t1)
-        return false;
+        return std::nullopt;
     }
-    t_result = t0;
-    return true;
+    return t0;
   }
 
   friend std::ostream &operator<<(std::ostream &os, const BoundingBox &box) {

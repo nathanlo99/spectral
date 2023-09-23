@@ -4,10 +4,10 @@
 #include "material.hpp"
 
 struct ReflectiveMaterial : Material {
-  vec3 albedo;
-  real fuzz;
+  const vec3 albedo;
+  const real fuzz;
 
-  ReflectiveMaterial(const vec3 &albedo, const real fuzz)
+  constexpr ReflectiveMaterial(const vec3 &albedo, const real fuzz)
       : albedo(albedo), fuzz(std::clamp(fuzz, 0.0, 1.0)) {}
   virtual ~ReflectiveMaterial() {}
 

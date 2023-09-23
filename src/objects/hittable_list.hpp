@@ -22,7 +22,7 @@ struct HittableList : public Hittable {
   constexpr void clear() { objects.clear(); }
   void add(std::shared_ptr<Hittable> object) {
     objects.push_back(object);
-    box.include(object->bounding_box());
+    box.union_with(object->bounding_box());
   }
 
   virtual bool hit(const Ray &ray, real t_min, real t_max,

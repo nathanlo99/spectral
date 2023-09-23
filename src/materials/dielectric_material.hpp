@@ -4,10 +4,10 @@
 #include "material.hpp"
 
 struct DielectricMaterial : public Material {
-  vec3 albedo;
-  real refractive_index;
+  const vec3 albedo;
+  const real refractive_index;
 
-  DielectricMaterial(const vec3 &albedo, const real refractive_index)
+  constexpr DielectricMaterial(const vec3 &albedo, const real refractive_index)
       : albedo(albedo), refractive_index(refractive_index) {}
   virtual ~DielectricMaterial() {}
 

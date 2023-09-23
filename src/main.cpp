@@ -43,15 +43,16 @@ vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
 std::shared_ptr<Hittable> random_scene(RNG &random) {
   std::shared_ptr<HittableList> world = std::make_shared<HittableList>();
 
-  auto ground_material = std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
+  const auto ground_material =
+      std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
   world->add(
       std::make_shared<Sphere>(vec3(0, -1000, 0), 1000, ground_material));
 
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
-      auto choose_mat = random.random_real();
-      vec3 center(a + 0.9 * random.random_real(), 0.2,
-                  b + 0.9 * random.random_real());
+      const real choose_mat = random.random_real();
+      const vec3 center(a + 0.9 * random.random_real(), 0.2,
+                        b + 0.9 * random.random_real());
 
       if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
         std::shared_ptr<Material> sphere_material;
@@ -77,13 +78,13 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
     }
   }
 
-  auto material1 = std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
+  const auto material1 = std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
   world->add(std::make_shared<Sphere>(vec3(0, 1, 0), 1.0, material1));
 
-  auto material2 = std::make_shared<DiffuseMaterial>(vec3(0.4, 0.2, 0.1));
+  const auto material2 = std::make_shared<DiffuseMaterial>(vec3(0.4, 0.2, 0.1));
   world->add(std::make_shared<Sphere>(vec3(-4, 1, 0), 1.0, material2));
 
-  auto material3 =
+  const auto material3 =
       std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
   world->add(std::make_shared<Sphere>(vec3(4, 1, 0), 1.0, material3));
 
@@ -115,25 +116,28 @@ void debug() {
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
       const real mean =
-          lerp(300.0, 900.0, (static_cast<real>(row) / image.m_height));
+          lerp(400.0, 650.0, (static_cast<real>(row) / image.m_height));
       const real std =
-          lerp(1.0, 400.0, (static_cast<real>(col) / image.m_width));
+          lerp(5.0, 100.0, (static_cast<real>(col) / image.m_width));
       const auto f = [&](real x) {
-        return std::exp(-std::powf((x - mean) / std, 2.0));
+        return std::exp(-std::powf((x - mean) / std, 2.0) / 2.0) /
+               (std * sqrt(2.0 * M_PI));
       };
-      for (real wavelength = 400.0; wavelength <= 700.0; wavelength += 5) {
+      for (real wavelength = 400.0; wavelength <= 700.0; wavelength += 2.5) {
         image.add_pixel_sample(row, col, {wavelength, f(wavelength)});
       }
+      image.m_pixels[row * image.m_width + col].m_function.normalize(
+          400.0, 700.0, 300.0);
     }
   }
 
   fmt::println("Writing spectral image...");
-  image.write_png("output/spectral.png");
+  image.write_png<false>("output/spectral.png");
 }
 
 int main() {
-  debug();
-  return 0;
+  // debug();
+  // return 0;
 
   RGBImage image(1200, 800);
   RGBVarianceImage variance_image(image.m_width, image.m_height);
@@ -192,6 +196,6 @@ int main() {
   // Gamma-correction approximates a sqrt, so variance becomes stddev
   variance_image.write_png<true>("output/stddev.png");
 
-  const auto elapsed_seconds = timer.elapsed_seconds();
+  const double elapsed_seconds = timer.elapsed_seconds();
   fmt::println("\nDone! Took {:.2f} seconds.", elapsed_seconds);
 }

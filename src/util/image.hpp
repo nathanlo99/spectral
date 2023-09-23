@@ -5,14 +5,14 @@
 #include "util/piecewise_linear.hpp"
 #include "util/util.hpp"
 
-using RGBByte = std::array<unsigned char, 3>;
+using RGBByte = std::array<uint8_t, 3>;
 
 constexpr inline real gamma_correct_real(const real d) {
   constexpr real gamma = 2.2, gamma_exp = 1.0 / gamma;
   return std::pow(d, gamma_exp);
 }
 
-constexpr inline unsigned char to_byte(const real d) { return 255.99 * d; }
+constexpr inline uint8_t to_byte(const real d) { return 255.99 * d; }
 
 constexpr inline RGBByte to_bytes(const vec3 &pixel) {
   RGBByte result;
@@ -59,7 +59,7 @@ template <typename Pixel> struct Image {
   // https://64.github.io/tonemapping
   template <bool gamma_correct = true>
   void write_png(const std::string_view &filename) const {
-    std::vector<unsigned char> gamma_corrected_data(3 * m_width * m_height);
+    std::vector<uint8_t> gamma_corrected_data(3 * m_width * m_height);
     for (size_t i = 0; i < m_width * m_height; ++i) {
       const RGBByte rgb_pixel =
           to_bytes(gamma_correct_pixel<gamma_correct>(m_pixels[i].to_pixel()));
@@ -101,11 +101,6 @@ struct RGBVariancePixel {
       : m_mean(data), m_variance(0.0) {}
   constexpr inline void add_sample(const sample_t &_sample) {
     const vec3 sample = remove_nans(_sample);
-    if (m_num_samples == 0) {
-      m_mean = sample;
-      m_num_samples = 1.0;
-      return;
-    }
     const vec3 old_mean = m_mean;
     m_num_samples += 1;
     m_mean += (sample - m_mean) / m_num_samples;
@@ -145,7 +140,7 @@ struct SpectralPixel {
              (max_wavelength - min_wavelength);
     };
 
-    const auto &cmf = SpectralColourMatchingFunction::get();
+    const auto &cmf = ColourMatchingFunction::get();
     const real X = combine(m_function, cmf.X);
     const real Y = combine(m_function, cmf.Y);
     const real Z = combine(m_function, cmf.Z);
