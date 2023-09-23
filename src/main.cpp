@@ -192,6 +192,7 @@ int main() {
 
   image.write_png<true>("output/progress.png");
   image.write_png<true>("output/result.png");
+  image.write_png<true>("public_output/result.png"));
 
   // Gamma-correction approximates a sqrt, so variance becomes stddev
   variance_image.write_png<true>("output/stddev.png");
