@@ -13,6 +13,7 @@
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
 #include "util/image.hpp"
+#include "util/piecewise_linear.hpp"
 #include "util/random.hpp"
 #include "util/timer.hpp"
 
@@ -109,7 +110,31 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
   return std::make_shared<BVH>(world->objects);
 }
 
+void debug() {
+  Image<SpectralPixel> image(200, 200);
+  for (size_t row = 0; row < image.m_height; ++row) {
+    for (size_t col = 0; col < image.m_width; ++col) {
+      const real mean =
+          lerp(300.0, 900.0, (static_cast<real>(row) / image.m_height));
+      const real std =
+          lerp(1.0, 400.0, (static_cast<real>(col) / image.m_width));
+      const auto f = [&](real x) {
+        return std::exp(-std::powf((x - mean) / std, 2.0));
+      };
+      for (real wavelength = 400.0; wavelength <= 700.0; wavelength += 5) {
+        image.add_pixel_sample(row, col, {wavelength, f(wavelength)});
+      }
+    }
+  }
+
+  fmt::println("Writing spectral image...");
+  image.write_png("output/spectral.png");
+}
+
 int main() {
+  debug();
+  return 0;
+
   RGBImage image(1200, 800);
   RGBVarianceImage variance_image(image.m_width, image.m_height);
   const vec3 camera_position(13.0, 2.0, 3.0);

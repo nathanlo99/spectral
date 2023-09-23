@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "util/cmf.hpp"
+#include "util/piecewise_linear.hpp"
 #include "util/util.hpp"
 
 using RGBByte = std::array<unsigned char, 3>;
@@ -46,9 +48,8 @@ template <typename Pixel> struct Image {
     m_pixels[row * m_width + col] = pixel;
   }
 
-  template <typename Sample>
   void add_pixel_sample(const size_t row, const size_t col,
-                        const Sample &sample) {
+                        const Pixel::sample_t &sample) {
     debug_assert(row < m_height, "row ({}) >= m_height ({})", row, m_height);
     debug_assert(col < m_width, "col ({}) >= m_width ({})", col, m_width);
     m_pixels[row * m_width + col].add_sample(sample);
@@ -75,13 +76,14 @@ template <typename Pixel> struct Image {
 };
 
 struct RGBPixel {
+  using sample_t = vec3;
   vec3 m_mean = vec3(0.0);
   real m_num_samples = 0;
 
   constexpr RGBPixel() {}
   constexpr RGBPixel(const vec3 &data) : m_mean(data), m_num_samples(1) {}
 
-  constexpr inline void add_sample(const vec3 &_sample) {
+  constexpr inline void add_sample(const sample_t &_sample) {
     const vec3 sample = remove_nans(_sample);
     m_num_samples += 1;
     m_mean += (sample - m_mean) / m_num_samples;
@@ -90,13 +92,14 @@ struct RGBPixel {
 };
 
 struct RGBVariancePixel {
+  using sample_t = vec3;
   vec3 m_mean = vec3(0.0);
   vec3 m_variance = vec3(0.0);
   real m_num_samples = 0;
 
   constexpr RGBVariancePixel(const vec3 &data = vec3(0.0, 0.0, 0.0))
       : m_mean(data), m_variance(0.0) {}
-  constexpr inline void add_sample(const vec3 &_sample) {
+  constexpr inline void add_sample(const sample_t &_sample) {
     const vec3 sample = remove_nans(_sample);
     if (m_num_samples == 0) {
       m_mean = sample;
@@ -112,6 +115,44 @@ struct RGBVariancePixel {
     if (m_num_samples == 0)
       return vec3(0.0);
     return m_variance / m_num_samples;
+  }
+};
+
+struct SpectralPixel {
+  struct sample_t {
+    real wavelength;
+    real value;
+  };
+  static constexpr real min_wavelength = 400.0, max_wavelength = 700.0,
+                        wavelength_range = max_wavelength - min_wavelength;
+  PiecewiseLinear m_function;
+
+  SpectralPixel() = default;
+
+  constexpr inline void add_sample(const sample_t &sample) {
+    debug_assert(min_wavelength <= sample.wavelength &&
+                     sample.wavelength <= max_wavelength,
+                 "wavelength ({}) not in [{}, {}]", sample.wavelength,
+                 min_wavelength, max_wavelength);
+    m_function.add_point(sample.wavelength, sample.value);
+  }
+
+  inline vec3 to_pixel() const {
+    const auto combine = [](const PiecewiseLinear &intensities,
+                            const PiecewiseLinear &cmf_component) {
+      return intensities.dot_product(cmf_component, min_wavelength,
+                                     max_wavelength) /
+             (max_wavelength - min_wavelength);
+    };
+
+    const auto &cmf = SpectralColourMatchingFunction::get();
+    const real X = combine(m_function, cmf.X);
+    const real Y = combine(m_function, cmf.Y);
+    const real Z = combine(m_function, cmf.Z);
+    const real R = 3.2404542 * X - 1.5371385 * Y - 0.4985314 * Z;
+    const real G = -0.9692660 * X + 1.8760108 * Y + 0.0415560 * Z;
+    const real B = 0.0556434 * X - 0.2040259 * Y + 1.0572252 * Z;
+    return vec3(R, G, B);
   }
 };
 

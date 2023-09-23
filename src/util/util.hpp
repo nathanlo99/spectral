@@ -35,10 +35,14 @@ constexpr bool near_zero(const real num) {
   return std::abs(num) < 2 * std::numeric_limits<real>::epsilon();
 }
 
+constexpr inline real lerp(const real a, const real b, const real t) {
+  return (1.0 - t) * a + t * b;
+}
+
 constexpr inline vec3 remove_nans(const vec3 &v) {
-  return vec3(std::isnan(v.x) ? 0.0 : v.x, //
-              std::isnan(v.y) ? 0.0 : v.y, //
-              std::isnan(v.z) ? 0.0 : v.z);
+  return vec3(std::isnan(v.x) ? 0.0 : v.x,  //
+              std::isnan(v.y) ? 0.0 : v.y,  //
+              std::isnan(v.z) ? 0.0 : v.z); //
 }
 
 template <> struct fmt::formatter<vec3> : formatter<std::string_view> {
