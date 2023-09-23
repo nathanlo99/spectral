@@ -9,9 +9,11 @@ Camera::Camera(const vec3 &pos, const vec3 &look_at, const vec3 &up,
       up(glm::cross(right, forward)), focal_length(glm::length(look_at - pos)),
       aperture_radius(aperture_radius) {
 
-  fmt::println("Camera: pos     = {}\n\tforward = {}\n\tright   = "
-               "{}\n\tup      = {}",
-               pos, forward, right, up);
+  fmt::println("Camera: pos     = {}", pos);
+  fmt::println("        forward = {}", forward);
+  fmt::println("        right   = {}", right);
+  fmt::println("        up      = {}", up);
+  fmt::println("");
 
   update_constants();
 }

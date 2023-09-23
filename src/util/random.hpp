@@ -18,7 +18,7 @@ struct RNG {
   }
 
   inline real random_real(const real min = 0.0, const real max = 1.0) {
-    boost::random::uniform_real_distribution<real> dist(min, max);
+    const boost::random::uniform_real_distribution<real> dist(min, max);
     return dist(generator);
   }
 

@@ -9,7 +9,7 @@ std::tuple<size_t, real, size_t> BVH::split_and_partition(const size_t start,
                                                           const size_t end) {
   BoundingBox box;
   for (size_t i = start; i < end; ++i) {
-    box = BoundingBox::box_union(box, primitives[i]->bounding_box());
+    box.union_with(primitives[i]->bounding_box());
   }
 
   const vec3 extent = box.max - box.min;
@@ -28,7 +28,6 @@ std::tuple<size_t, real, size_t> BVH::split_and_partition(const size_t start,
 
 // Recursively constructs a BVH with the primitives in indices [start, end),
 // and places the relevant information at index node_index.
-// Returns the new node.
 void BVH::construct(const size_t node_idx, const size_t start,
                     const size_t end) {
   debug_assert(start < end, "BVH::construct: start >= end");
@@ -47,48 +46,64 @@ void BVH::construct(const size_t node_idx, const size_t start,
   nodes.emplace_back(); // Right child
 
   const auto &[axis, split, mid] = split_and_partition(start, end);
-  BVHNode result;
+  construct(left_idx, start, mid);
+  construct(right_idx, mid, end);
+
+  BVHNode &result = nodes[node_idx];
   result.is_leaf = false;
   result.axis = axis;
   result.index = left_idx;
-  construct(left_idx, start, mid);
-  construct(right_idx, mid, end);
   result.box =
       BoundingBox::box_union(nodes[left_idx].box, nodes[right_idx].box);
-
-  nodes[node_idx] = result;
 }
 
-bool BVH::hit(const Ray &ray, real t_min, real t_max, HitRecord &record) const {
+bool BVH::hit(const Ray &ray, const real t_min, const real t_max,
+              HitRecord &record) const {
   return recursive_hit(ray, t_min, t_max, record, 0);
 }
 
 bool BVH::recursive_hit(const Ray &ray, real t_min, real t_max,
                         HitRecord &record, const size_t node_idx) const {
-  const BVHNode &node = nodes[node_idx];
-
-  const auto t_hit_box = node.box.hit(ray, t_min, t_max);
-  if (!t_hit_box.has_value())
+  t_max = std::min(t_max, record.t);
+  if (t_min >= t_max)
     return false;
 
-  t_min = t_hit_box.value();
-
+  const BVHNode &node = nodes[node_idx];
   if (node.is_leaf)
     return primitives[node.index]->hit(ray, t_min, t_max, record);
 
-  const bool check_left_first = ray.direction[node.axis] > 0;
-  const size_t left_child = node.index, right_child = left_child + 1;
-  if (check_left_first) {
-    const bool hit_left = recursive_hit(ray, t_min, t_max, record, left_child);
-    const bool hit_right = recursive_hit(
-        ray, t_min, hit_left ? record.t : t_max, record, right_child);
-    return hit_left || hit_right;
+  const size_t left_index = node.index, right_index = left_index + 1;
+  const BVHNode &left_node = nodes[left_index];
+  const BVHNode &right_node = nodes[right_index];
+
+  const auto left_interval = left_node.box.hit_interval(ray, t_min, t_max);
+  const auto right_interval = right_node.box.hit_interval(ray, t_min, t_max);
+
+  if (!left_interval.has_value() && !right_interval.has_value()) {
+    return false;
+  } else if (!right_interval.has_value()) {
+    const auto &[t0, t1] = left_interval.value();
+    return recursive_hit(ray, t0, t1, record, left_index);
+  } else if (!left_interval.has_value()) {
+    const auto &[t0, t1] = right_interval.value();
+    return recursive_hit(ray, t0, t1, record, right_index);
   } else {
-    const bool hit_right =
-        recursive_hit(ray, t_min, t_max, record, right_child);
-    const bool hit_left = recursive_hit(
-        ray, t_min, hit_right ? record.t : t_max, record, left_child);
-    return hit_left || hit_right;
+    const auto &[left0, left1] = left_interval.value();
+    const auto &[right0, right1] = right_interval.value();
+
+    if (left0 < right0) {
+      const bool hit_left =
+          recursive_hit(ray, left0, left1, record, left_index);
+      const bool hit_right =
+          recursive_hit(ray, right0, right1, record, right_index);
+      return hit_left || hit_right;
+    } else {
+      const bool hit_right =
+          recursive_hit(ray, right0, right1, record, right_index);
+      const bool hit_left =
+          recursive_hit(ray, left0, left1, record, left_index);
+      return hit_left || hit_right;
+    }
   }
 }
 

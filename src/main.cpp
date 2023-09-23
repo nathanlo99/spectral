@@ -1,7 +1,10 @@
 
 #include <cstddef>
 
+#include "fmt/color.h"
+#include "fmt/compile.h"
 #include "fmt/core.h"
+
 #include "materials/dielectric_material.hpp"
 #include "materials/diffuse_material.hpp"
 #include "materials/reflective_material.hpp"
@@ -155,9 +158,30 @@ int main() {
   const size_t total_samples =
       image.m_width * image.m_height * samples_per_pixel;
   size_t num_samples = 0;
-  size_t num_progress_updates = 0;
 
   Timer timer;
+
+  const auto print_progress_update = [&]() {
+    const real proportion_done = static_cast<real>(num_samples) / total_samples;
+    const real elapsed_seconds = timer.elapsed_seconds();
+    const real remaining_seconds = elapsed_seconds / proportion_done;
+    const real samples_per_second = num_samples / elapsed_seconds;
+
+    fmt::print("\33[2K\r");
+    fmt::print("Progress: {} [", fmt::format(fmt::emphasis::bold, "{:.2f}%",
+                                             100.0 * proportion_done));
+    fmt::print("elapsed_time: {} / {}, ",
+               fmt::format(fmt::emphasis::bold, "{:.2f}s", elapsed_seconds),
+               fmt::format(fmt::emphasis::bold, "{:.2f}s", remaining_seconds));
+    fmt::print("sample {} / {}, ", num_samples, total_samples);
+    fmt::print(
+        "samples_per_sec: {}",
+        fmt::format(fmt::emphasis::bold, "{:.2f}M", samples_per_second / 1e6));
+
+    fmt::print("]");
+    std::cout << std::flush;
+  };
+
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
       const vec2 pixel = vec2(col + 0.5, row + 0.5);
@@ -174,29 +198,23 @@ int main() {
       if (timer.seconds_since_last_update("progress_image") >= 1.0) {
         timer.update("progress_image");
         image.write_png<true>("output/progress.png");
-        num_progress_updates++;
       }
 
       if (timer.seconds_since_last_update("print_progress") >= 0.1) {
         timer.update("print_progress");
-        fmt::print(
-            "\33[2K\rProgress: {:.2f}% [sample {}/{}, elapsed_time: "
-            "{:.2f}s, samples_per_sec: {:.2f}M, num_progress_updates: {}]",
-            100.0 * num_samples / total_samples, num_samples, total_samples,
-            timer.elapsed_seconds(),
-            num_samples / timer.elapsed_seconds() / 1e6, num_progress_updates);
-        std::cout << std::flush;
+        print_progress_update();
       }
     }
   }
+  print_progress_update();
 
   image.write_png<true>("output/progress.png");
   image.write_png<true>("output/result.png");
-  image.write_png<true>("public_output/result.png"));
+  image.write_png<true>("public_output/result.png");
 
   // Gamma-correction approximates a sqrt, so variance becomes stddev
   variance_image.write_png<true>("output/stddev.png");
 
-  const double elapsed_seconds = timer.elapsed_seconds();
+  const real elapsed_seconds = timer.elapsed_seconds();
   fmt::println("\nDone! Took {:.2f} seconds.", elapsed_seconds);
 }

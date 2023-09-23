@@ -6,6 +6,7 @@
 struct PiecewiseLinear {
   struct Point {
     real x, y;
+    constexpr Point(const real x, const real y) : x(x), y(y) {}
     friend constexpr bool operator<(const Point &a, const Point &b) {
       return a.x < b.x;
     }
@@ -14,8 +15,7 @@ struct PiecewiseLinear {
   mutable std::vector<Point> m_points;
   mutable bool m_is_sorted = false;
 
-  constexpr PiecewiseLinear() {}
-  constexpr PiecewiseLinear(const std::vector<Point> &points)
+  constexpr PiecewiseLinear(const std::vector<Point> &points = {})
       : m_points(points) {}
 
   constexpr inline void add_point(const real x, const real y) {

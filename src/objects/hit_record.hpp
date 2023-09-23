@@ -9,7 +9,7 @@ struct Material;
 struct HitRecord {
   vec3 p;
   vec3 normal;
-  real t;
+  real t = INFINITY;
   bool front_face;
 
   std::shared_ptr<Material> material;

@@ -22,9 +22,9 @@ struct BVH : public Hittable {
     Timer timer;
     nodes.emplace_back();
     construct(0, 0, primitives.size());
-    const real elapsed_seconds = timer.elapsed_seconds();
-    fmt::println("Constructed BVH on {} nodes in {:.3f} seconds", nodes.size(),
-                 elapsed_seconds);
+    const real elapsed_nanoseconds = timer.elapsed_nanoseconds();
+    fmt::println("Constructed BVH on {} nodes in {:.3f} ns", nodes.size(),
+                 elapsed_nanoseconds);
   }
   virtual ~BVH() {}
 
