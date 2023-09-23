@@ -78,30 +78,32 @@ bool BVH::recursive_hit(const Ray &ray, real t_min, real t_max,
 
   const auto left_interval = left_node.box.hit_interval(ray, t_min, t_max);
   const auto right_interval = right_node.box.hit_interval(ray, t_min, t_max);
+  const bool left_valid = left_interval.has_value();
+  const bool right_valid = right_interval.has_value();
 
-  if (!left_interval.has_value() && !right_interval.has_value()) {
+  if (!left_valid && !right_valid) {
     return false;
-  } else if (!right_interval.has_value()) {
-    const auto &[t0, t1] = left_interval.value();
-    return recursive_hit(ray, t0, t1, record, left_index);
-  } else if (!left_interval.has_value()) {
-    const auto &[t0, t1] = right_interval.value();
-    return recursive_hit(ray, t0, t1, record, right_index);
+  } else if (left_valid && !right_valid) {
+    const auto &[left_min, left_max] = left_interval.value();
+    return recursive_hit(ray, left_min, left_max, record, left_index);
+  } else if (!left_valid && right_valid) {
+    const auto &[right_min, right_max] = right_interval.value();
+    return recursive_hit(ray, right_min, right_max, record, right_index);
   } else {
-    const auto &[left0, left1] = left_interval.value();
-    const auto &[right0, right1] = right_interval.value();
+    const auto &[left_min, left_max] = left_interval.value();
+    const auto &[right_min, right_max] = right_interval.value();
 
-    if (left0 < right0) {
+    if (left_min < right_min) {
       const bool hit_left =
-          recursive_hit(ray, left0, left1, record, left_index);
+          recursive_hit(ray, left_min, left_max, record, left_index);
       const bool hit_right =
-          recursive_hit(ray, right0, right1, record, right_index);
+          recursive_hit(ray, right_min, right_max, record, right_index);
       return hit_left || hit_right;
     } else {
       const bool hit_right =
-          recursive_hit(ray, right0, right1, record, right_index);
+          recursive_hit(ray, right_min, right_max, record, right_index);
       const bool hit_left =
-          recursive_hit(ray, left0, left1, record, left_index);
+          recursive_hit(ray, left_min, left_max, record, left_index);
       return hit_left || hit_right;
     }
   }

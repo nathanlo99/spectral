@@ -25,18 +25,18 @@ constexpr vec3 get_background_colour(const Ray &ray) {
   return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
-vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &r,
+vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &ray,
                 const Scene &scene) {
   if (remaining_depth == 0)
     return vec3(0.0);
 
   HitRecord record;
-  if (!scene.world.hit(r, 0.0001, 99999, record))
-    return get_background_colour(r);
+  if (!scene.world.hit(ray, 0.0001, 99999, record))
+    return get_background_colour(ray);
 
   Ray scattered;
   vec3 attenuation;
-  if (!record.material->scatter(random, r, record, attenuation, scattered))
+  if (!record.material->scatter(random, ray, record, attenuation, scattered))
     return vec3(0.0);
 
   return attenuation *

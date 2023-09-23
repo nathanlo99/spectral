@@ -9,7 +9,7 @@ struct HitRecord;
 
 struct Hittable {
 public:
-  virtual bool hit(const Ray &r, real t_min, real t_max,
+  virtual bool hit(const Ray &ray, real t_min, real t_max,
                    HitRecord &rec) const = 0;
   virtual BoundingBox bounding_box() const = 0;
 
