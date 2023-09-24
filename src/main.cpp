@@ -1,4 +1,5 @@
 
+#include <cmath>
 #include <cstddef>
 
 #include "fmt/color.h"
@@ -26,22 +27,26 @@ constexpr vec3 get_background_colour(const Ray &ray) {
          t * vec3(0.5, 0.7, 1.0);
 }
 
-vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &ray,
+vec3 ray_colour(RNG &random, const size_t max_depth, const Ray &ray,
                 const Scene &scene) {
-  if (remaining_depth == 0)
-    return vec3(0.0);
+  vec3 colour(1.0, 1.0, 1.0);
+  Ray current_ray = ray;
+  for (size_t depth = 0; depth < max_depth; ++depth) {
+    HitRecord record;
+    if (!scene.world.hit(current_ray, 0.0001, INFINITY, record))
+      return colour * get_background_colour(current_ray);
 
-  HitRecord record;
-  if (!scene.world.hit(ray, 0.0001, 99999, record))
-    return get_background_colour(ray);
+    Ray scattered;
+    vec3 attenuation;
+    // TODO: Return emitted light
+    if (!record.material->scatter(random, current_ray, record, attenuation,
+                                  scattered))
+      return vec3(0.0);
 
-  Ray scattered;
-  vec3 attenuation;
-  if (!record.material->scatter(random, ray, record, attenuation, scattered))
-    return vec3(0.0);
-
-  return attenuation *
-         ray_colour(random, remaining_depth - 1, scattered, scene);
+    colour *= attenuation;
+    current_ray = scattered;
+  }
+  return vec3(0.0);
 }
 
 std::shared_ptr<Hittable> random_scene(RNG &random) {
@@ -49,8 +54,7 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
 
   const auto ground_material =
       std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
-  world->add(
-      std::make_shared<Sphere>(vec3(0, -1000, 0), 1000, ground_material));
+  world->emplace<Sphere>(vec3(0, -1000, 0), 1000, ground_material);
 
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
@@ -59,38 +63,38 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
                         b + 0.9 * random.random_real());
 
       if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
-        std::shared_ptr<Material> sphere_material;
-
         if (choose_mat < 0.8) {
           // diffuse
           const vec3 albedo = random.random_vec3() * random.random_vec3();
-          sphere_material = std::make_shared<DiffuseMaterial>(albedo);
-          world->add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+          const auto sphere_material =
+              std::make_shared<DiffuseMaterial>(albedo);
+          world->emplace<Sphere>(center, 0.2, sphere_material);
         } else if (choose_mat < 0.95) {
           // metal
           const vec3 albedo = random.random_vec3(0.5, 1.0);
           const real fuzz = random.random_real(0, 0.5);
-          sphere_material = std::make_shared<ReflectiveMaterial>(albedo, fuzz);
-          world->add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+          const auto sphere_material =
+              std::make_shared<ReflectiveMaterial>(albedo, fuzz);
+          world->emplace<Sphere>(center, 0.2, sphere_material);
         } else {
           // glass
-          sphere_material =
+          const auto sphere_material =
               std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
-          world->add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+          world->emplace<Sphere>(center, 0.2, sphere_material);
         }
       }
     }
   }
 
   const auto material1 = std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
-  world->add(std::make_shared<Sphere>(vec3(0, 1, 0), 1.0, material1));
+  world->emplace<Sphere>(vec3(0, 1, 0), 1.0, material1);
 
   const auto material2 = std::make_shared<DiffuseMaterial>(vec3(0.4, 0.2, 0.1));
-  world->add(std::make_shared<Sphere>(vec3(-4, 1, 0), 1.0, material2));
+  world->emplace<Sphere>(vec3(-4, 1, 0), 1.0, material2);
 
   const auto material3 =
       std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
-  world->add(std::make_shared<Sphere>(vec3(4, 1, 0), 1.0, material3));
+  world->emplace<Sphere>(vec3(4, 1, 0), 1.0, material3);
 
   return std::make_shared<BVH>(world->objects);
 }

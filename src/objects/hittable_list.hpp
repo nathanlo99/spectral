@@ -24,6 +24,9 @@ struct HittableList : public Hittable {
     box.union_with(object->bounding_box());
     objects.emplace_back(std::move(object));
   }
+  template <typename T, class... Args> inline void emplace(Args &&...args) {
+    add(std::make_shared<T>(std::forward<Args>(args)...));
+  }
 
   virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
