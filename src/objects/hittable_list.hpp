@@ -16,16 +16,16 @@ struct HittableList : public Hittable {
   BoundingBox box;
 
   HittableList() {}
-  HittableList(std::shared_ptr<Hittable> object) { add(object); }
+  HittableList(std::shared_ptr<Hittable> object) { add(std::move(object)); }
   virtual ~HittableList() {}
 
-  constexpr void clear() { objects.clear(); }
-  void add(std::shared_ptr<Hittable> object) {
-    objects.push_back(object);
+  constexpr inline void clear() { objects.clear(); }
+  inline void add(std::shared_ptr<Hittable> object) {
     box.union_with(object->bounding_box());
+    objects.emplace_back(std::move(object));
   }
 
-  virtual bool hit(const Ray &ray, real t_min, real t_max,
+  virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
   virtual BoundingBox bounding_box() const override { return box; }
   virtual void

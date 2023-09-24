@@ -28,6 +28,6 @@ bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
       should_reflect ? glm::reflect(ray.direction, record.normal)
                      : glm::refract(ray.direction, record.normal, ior_ratio);
 
-  scattered = Ray(record.p, scattered_direction);
+  scattered = Ray(ray.at(record.t), scattered_direction);
   return true;
 }

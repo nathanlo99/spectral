@@ -10,9 +10,20 @@
 struct BVH : public Hittable {
   struct BVHNode {
     BoundingBox box;
-    uint8_t axis = 0;
-    size_t index = -1;
-    bool is_leaf = true;
+    uint8_t axis;
+    size_t index;
+
+    static constexpr inline BVHNode leaf(const size_t primitive_index,
+                                         const BoundingBox &box) {
+      return BVHNode{box, 3, primitive_index};
+    }
+    static constexpr inline BVHNode internal(const size_t left_index,
+                                             const uint8_t split_axis,
+                                             const BoundingBox &box) {
+      return BVHNode{box, split_axis, left_index};
+    }
+
+    constexpr inline bool is_leaf() const { return axis == 3; }
   };
   std::vector<BVHNode> nodes;
   std::vector<std::shared_ptr<Hittable>> primitives;

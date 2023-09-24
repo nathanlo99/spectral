@@ -12,7 +12,6 @@ bool SignedDistanceField::hit(const Ray &ray, const real t_min,
     const real distance_to_surface = func(pos);
     if (distance_to_surface < eps) {
       record.t = t;
-      record.p = pos;
       const vec3 outward_normal = glm::normalize(vec3(
           func(pos + vec3(eps, 0.0, 0.0)) - func(pos - vec3(eps, 0.0, 0.0)),
           func(pos + vec3(0.0, eps, 0.0)) - func(pos - vec3(0.0, eps, 0.0)),

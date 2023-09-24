@@ -33,10 +33,7 @@ void BVH::construct(const size_t node_idx, const size_t start,
   debug_assert(start < end, "BVH::construct: start >= end");
 
   if (end - start == 1) {
-    BVHNode &result = nodes[node_idx];
-    result.is_leaf = true;
-    result.index = start;
-    result.box = primitives[start]->bounding_box();
+    nodes[node_idx] = BVHNode::leaf(start, primitives[start]->bounding_box());
     return;
   }
 
@@ -49,12 +46,9 @@ void BVH::construct(const size_t node_idx, const size_t start,
   construct(left_idx, start, mid);
   construct(right_idx, mid, end);
 
-  BVHNode &result = nodes[node_idx];
-  result.is_leaf = false;
-  result.axis = axis;
-  result.index = left_idx;
-  result.box =
-      BoundingBox::box_union(nodes[left_idx].box, nodes[right_idx].box);
+  nodes[node_idx] = BVHNode::internal(
+      left_idx, axis,
+      BoundingBox::box_union(nodes[left_idx].box, nodes[right_idx].box));
 }
 
 bool BVH::hit(const Ray &ray, const real t_min, const real t_max,
@@ -69,7 +63,7 @@ bool BVH::recursive_hit(const Ray &ray, real t_min, real t_max,
     return false;
 
   const BVHNode &node = nodes[node_idx];
-  if (node.is_leaf)
+  if (node.is_leaf())
     return primitives[node.index]->hit(ray, t_min, t_max, record);
 
   const size_t left_index = node.index, right_index = left_index + 1;
@@ -113,7 +107,7 @@ void BVH::debug_print() const {
   fmt::println("BVH:");
   for (size_t i = 0; i < nodes.size(); ++i) {
     const BVHNode &node = nodes[i];
-    if (node.is_leaf) {
+    if (node.is_leaf()) {
       fmt::println("Leaf {}:\n  box: ({}, {})\n  primitive_idx: {}\n", i,
                    node.box.min, node.box.max, node.index);
     } else {

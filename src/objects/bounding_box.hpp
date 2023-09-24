@@ -11,26 +11,27 @@
 struct BoundingBox {
   vec3 min, max;
 
-  BoundingBox() : min(vec3(INFINITY)), max(vec3(-INFINITY)) {}
-  BoundingBox(const vec3 &min, const vec3 &max) : min(min), max(max) {}
+  constexpr BoundingBox() : min(vec3(INFINITY)), max(vec3(-INFINITY)) {}
+  constexpr BoundingBox(const vec3 &min, const vec3 &max)
+      : min(min), max(max) {}
 
-  inline void union_with(const BoundingBox &other) {
+  constexpr inline void union_with(const BoundingBox &other) {
     min = glm::min(min, other.min);
     max = glm::max(max, other.max);
   }
 
-  inline void intersect_with(const BoundingBox &other) {
+  constexpr inline void intersect_with(const BoundingBox &other) {
     min = glm::max(min, other.min);
     max = glm::min(max, other.max);
   }
 
-  inline bool contains(const vec3 &point) const {
+  constexpr inline bool contains(const vec3 &point) const {
     return glm::all(glm::lessThanEqual(min, point)) &&
            glm::all(glm::lessThanEqual(point, max));
   }
 
-  static inline BoundingBox box_union(const BoundingBox &box1,
-                                      const BoundingBox &box2) {
+  constexpr static inline BoundingBox box_union(const BoundingBox &box1,
+                                                const BoundingBox &box2) {
     return BoundingBox(glm::min(box1.min, box2.min),
                        glm::max(box1.max, box2.max));
   }

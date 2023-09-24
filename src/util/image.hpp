@@ -120,8 +120,7 @@ struct SpectralPixel {
     constexpr sample_t(const real wavelength, const real value)
         : wavelength(wavelength), value(value) {}
   };
-  static constexpr real min_wavelength = 400.0, max_wavelength = 700.0,
-                        wavelength_range = max_wavelength - min_wavelength;
+  static constexpr real min_wavelength = 400.0, max_wavelength = 700.0;
   PiecewiseLinear m_function;
 
   constexpr SpectralPixel() = default;

@@ -7,7 +7,6 @@
 struct Material;
 
 struct HitRecord {
-  vec3 p;
   vec3 normal;
   real t = INFINITY;
   bool front_face;

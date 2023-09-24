@@ -15,7 +15,7 @@ struct ColourMatchingFunction {
   PiecewiseLinear X, Y, Z;
 
   // Singleton to avoid reinitializing
-  static ColourMatchingFunction get() {
+  static const ColourMatchingFunction &get() {
     static ColourMatchingFunction result;
     return result;
   }
@@ -29,4 +29,8 @@ private:
       Z.add_point(lambda, z);
     }
   }
+
+public:
+  ColourMatchingFunction(ColourMatchingFunction const &) = delete;
+  void operator=(ColourMatchingFunction const &) = delete;
 };

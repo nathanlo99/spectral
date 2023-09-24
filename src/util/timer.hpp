@@ -7,7 +7,7 @@
 
 struct Timer {
   using time_t = std::chrono::time_point<std::chrono::high_resolution_clock>;
-  time_t start_time;
+  const time_t start_time;
   std::unordered_map<std::string_view, time_t> last_update_time;
 
   Timer() : start_time(std::chrono::high_resolution_clock::now()) {}

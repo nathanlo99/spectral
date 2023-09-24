@@ -18,18 +18,18 @@ bool Sphere::hit(const Ray &ray, const real t_min, const real t_max,
   const real root1 = negative_half_b + sqrt_d;
 
   if (t_min < root0 && root0 < t_max) {
+    const vec3 hit_point = ray.at(root0);
+    const vec3 outward_normal = (hit_point - center) / radius;
     record.t = root0;
-    record.p = ray.at(record.t);
-    const vec3 outward_normal = (record.p - center) / radius;
     record.set_face_normal(ray, outward_normal);
     record.material = material;
     return true;
   }
 
   if (t_min < root1 && root1 < t_max) {
+    const vec3 hit_point = ray.at(root1);
+    const vec3 outward_normal = (hit_point - center) / radius;
     record.t = root1;
-    record.p = ray.at(record.t);
-    const vec3 outward_normal = (record.p - center) / radius;
     record.set_face_normal(ray, outward_normal);
     record.material = material;
     return true;

@@ -21,7 +21,7 @@ struct Sphere : public Hittable, std::enable_shared_from_this<Sphere> {
   }
   virtual ~Sphere() {}
 
-  virtual bool hit(const Ray &ray, real t_min, real t_max,
+  virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
   virtual BoundingBox bounding_box() const override;
   virtual void

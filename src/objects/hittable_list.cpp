@@ -3,7 +3,7 @@
 #include "hit_record.hpp"
 #include "objects/bounding_box.hpp"
 
-bool HittableList::hit(const Ray &ray, real t_min, real t_max,
+bool HittableList::hit(const Ray &ray, const real t_min, const real t_max,
                        HitRecord &record) const {
   HitRecord temp_record;
   bool hit_anything = false;
