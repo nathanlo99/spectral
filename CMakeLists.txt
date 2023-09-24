@@ -33,7 +33,7 @@ add_executable(spectral ${SOURCES})
 target_compile_features(spectral PUBLIC cxx_alignas)
 
 # Specify the include directories
-include_directories(include)
+include_directories(thirdparty)
 
 # Specify the libraries to link against
 target_link_libraries(spectral fmt::fmt-header-only ${Boost_LIBRARIES})
