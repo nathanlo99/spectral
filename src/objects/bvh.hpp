@@ -10,7 +10,7 @@
 struct BVH : public Hittable {
   struct BVHNode {
     BoundingBox box;
-    size_t axis = 0;
+    uint8_t axis = 0;
     size_t index = -1;
     bool is_leaf = true;
   };
@@ -35,7 +35,7 @@ struct BVH : public Hittable {
   // and places the relevant information at index node_index.
   void construct(const size_t node_idx, const size_t start, const size_t end);
 
-  virtual bool hit(const Ray &ray, real t_min, real t_max,
+  virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
 
   bool recursive_hit(const Ray &ray, real t_min, real t_max, HitRecord &record,

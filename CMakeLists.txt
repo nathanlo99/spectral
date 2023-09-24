@@ -30,6 +30,7 @@ include_directories(src ${Boost_INCLUDE_DIRS})
 # Specify source files
 file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/materials/*.cpp" "src/scene/*.cpp" "src/util/*.cpp" "src/objects/*.cpp")
 add_executable(spectral ${SOURCES})
+target_compile_features(spectral PUBLIC cxx_alignas)
 
 # Specify the include directories
 include_directories(include)

@@ -20,7 +20,7 @@ bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
   const real ior_ratio =
       record.front_face ? (1.0 / refractive_index) : refractive_index;
   const real cos_theta = glm::dot(-ray.direction, record.normal);
-  const real sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+  const real sin_theta = std::sqrt<real>(1.0 - cos_theta * cos_theta);
   const bool should_reflect =
       ior_ratio * sin_theta > 1.0 ||
       random.random_bool(schlick_reflection_probability(cos_theta, ior_ratio));

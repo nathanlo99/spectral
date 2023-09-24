@@ -16,10 +16,10 @@
 #include "util/stb.hpp"
 
 using real = double;
-using vec2 = glm::dvec2;
-using vec3 = glm::dvec3;
-using vec4 = glm::dvec4;
-using mat4 = glm::dmat4;
+using vec2 = glm::vec<2, real, glm::defaultp>;
+using vec3 = glm::vec<3, real, glm::defaultp>;
+using vec4 = glm::vec<4, real, glm::defaultp>;
+using mat4 = glm::mat<4, 4, real, glm::defaultp>;
 
 #define debug_assert(expr, message, ...)                                       \
   if (!(expr))                                                                 \

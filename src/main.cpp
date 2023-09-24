@@ -22,7 +22,8 @@
 
 constexpr vec3 get_background_colour(const Ray &ray) {
   const real t = 0.5 * (ray.direction.y + 1.0);
-  return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+  return (static_cast<real>(1.0) - t) * vec3(1.0, 1.0, 1.0) +
+         t * vec3(0.5, 0.7, 1.0);
 }
 
 vec3 ray_colour(RNG &random, const size_t remaining_depth, const Ray &ray,
@@ -91,26 +92,6 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
       std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
   world->add(std::make_shared<Sphere>(vec3(4, 1, 0), 1.0, material3));
 
-  /*
-  auto blue_material = std::make_shared<DiffuseMaterial>(vec3(0.3, 0.3, 1.0));
-  auto sdf = [](const vec3 &pos) {
-    return glm::length(pos - vec3(0.0, 0.5, 0.0)) - 0.5;
-  };
-  world->add(std::make_shared<SignedDistanceField>(
-      sdf, blue_material, vec3(-0.5, 0.0, -0.5), vec3(0.5, 1.0, 0.5)));
-
-  auto red_material = std::make_shared<DiffuseMaterial>(vec3(1.0, 0.3, 0.3));
-  auto torus_sdf = [](const vec3 &pos) {
-    const vec3 shifted_pos = pos - vec3(0.0, 0.5, 0.0);
-    return glm::length(
-               vec2(glm::length(vec2(shifted_pos.x, shifted_pos.z)) - 0.5,
-                    shifted_pos.y)) -
-           0.25;
-  };
-  world->add(std::make_shared<SignedDistanceField>(torus_sdf, red_material,
-                                                   vec3(-2.0), vec3(2.0)));
-  */
-
   return std::make_shared<BVH>(world->objects);
 }
 
@@ -122,7 +103,7 @@ void debug() {
           lerp(400.0, 650.0, (static_cast<real>(row) / image.m_height));
       const real std =
           lerp(5.0, 100.0, (static_cast<real>(col) / image.m_width));
-      const auto f = [&](real x) {
+      const auto f = [&](real x) -> real {
         return std::exp(-std::powf((x - mean) / std, 2.0) / 2.0) /
                (std * sqrt(2.0 * M_PI));
       };
