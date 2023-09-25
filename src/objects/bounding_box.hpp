@@ -15,6 +15,16 @@ struct BoundingBox {
   constexpr BoundingBox(const vec3 &min, const vec3 &max)
       : min(min), max(max) {}
 
+  constexpr inline real surface_area() const {
+    const vec3 d = max - min;
+    return 2.0 * (d.x * d.y + d.x * d.z + d.y * d.z);
+  }
+
+  constexpr inline real volume() const {
+    const vec3 d = max - min;
+    return d.x * d.y * d.z;
+  }
+
   constexpr inline void union_with(const BoundingBox &other) {
     min = glm::min(min, other.min);
     max = glm::max(max, other.max);
@@ -36,7 +46,7 @@ struct BoundingBox {
                        glm::max(box1.max, box2.max));
   }
 
-  __attribute((hot)) std::optional<std::pair<real, real>>
+  __attribute((hot)) constexpr std::optional<std::pair<real, real>>
   hit_interval(const Ray &ray, const real t_min, const real t_max) const {
     const vec3 t1 = (min - ray.origin) / ray.direction;
     const vec3 t2 = (max - ray.origin) / ray.direction;
@@ -51,7 +61,7 @@ struct BoundingBox {
     return std::nullopt;
   }
 
-  __attribute((hot)) inline std::optional<real>
+  __attribute((hot)) constexpr inline std::optional<real>
   hit(const Ray &ray, const real t_min, const real t_max) {
     const auto interval = hit_interval(ray, t_min, t_max);
     return interval.has_value() ? std::make_optional(interval->first)

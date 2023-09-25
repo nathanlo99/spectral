@@ -28,6 +28,8 @@ struct SignedDistanceField : public Hittable,
       : func(func), material(material), box(min, max) {}
   virtual ~SignedDistanceField() {}
 
+  constexpr vec3 get_normal(const vec3 &pos) const;
+
   virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
 

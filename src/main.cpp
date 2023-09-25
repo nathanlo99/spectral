@@ -100,7 +100,7 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
 }
 
 void debug() {
-  Image<SpectralPixel> image(200, 200);
+  Image<SpectralPixel> image(800, 800);
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
       const real mean =

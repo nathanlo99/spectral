@@ -9,18 +9,20 @@
 
 struct BVH : public Hittable {
   struct BVHNode {
+    using axis_t = size_t;
     BoundingBox box;
-    uint8_t axis;
-    size_t index;
+    axis_t axis;
+    size_t left_index, right_index;
 
     static constexpr inline BVHNode leaf(const size_t primitive_index,
                                          const BoundingBox &box) {
-      return BVHNode{box, 3, primitive_index};
+      return BVHNode{box, 3, primitive_index, 0};
     }
     static constexpr inline BVHNode internal(const size_t left_index,
-                                             const uint8_t split_axis,
+                                             const size_t right_index,
+                                             const axis_t split_axis,
                                              const BoundingBox &box) {
-      return BVHNode{box, split_axis, left_index};
+      return BVHNode{box, split_axis, left_index, right_index};
     }
 
     constexpr inline bool is_leaf() const { return axis == 3; }
@@ -31,16 +33,17 @@ struct BVH : public Hittable {
   BVH(const std::vector<std::shared_ptr<Hittable>> &primitives)
       : primitives(primitives) {
     Timer timer;
-    nodes.emplace_back();
+    nodes.reserve(2 * primitives.size() - 1);
     construct(0, 0, primitives.size());
     const real elapsed_nanoseconds = timer.elapsed_nanoseconds();
-    fmt::println("Constructed BVH on {} nodes in {:.3f} ns", nodes.size(),
-                 elapsed_nanoseconds);
+    fmt::println(
+        "Constructed BVH on {} primitives, using {} nodes in {:.3f} ns",
+        primitives.size(), nodes.size(), elapsed_nanoseconds);
   }
   virtual ~BVH() {}
 
-  std::tuple<size_t, real, size_t> split_and_partition(const size_t start,
-                                                       const size_t end);
+  std::tuple<BVHNode::axis_t, real, size_t>
+  split_and_partition(const size_t start, const size_t end);
 
   // Recursively constructs a BVH with the primitives in indices [start, end),
   // and places the relevant information at index node_index.
