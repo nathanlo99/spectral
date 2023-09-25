@@ -29,27 +29,25 @@ BVH::split_and_partition(const size_t start, const size_t end) {
 
 // Recursively constructs a BVH with the primitives in indices [start, end),
 // and places the relevant information at index node_index.
-void BVH::construct(const size_t node_idx, const size_t start,
-                    const size_t end) {
+size_t BVH::construct(const size_t start, const size_t end) {
   debug_assert(start < end, "BVH::construct: start >= end");
+  const size_t node_idx = nodes.size();
   nodes.emplace_back();
 
   if (end - start == 1) {
     nodes[node_idx] = BVHNode::leaf(start, primitives[start]->bounding_box());
-    return;
+    return node_idx;
   }
 
-  // debug_assert(nodes.size() == node_idx, "Invariant broken");
   const auto &[axis, split, mid] = split_and_partition(start, end);
-  const size_t left_idx = nodes.size();
-  construct(left_idx, start, mid);
-
-  const size_t right_idx = nodes.size();
-  construct(right_idx, mid, end);
+  const size_t left_idx = construct(start, mid);
+  const size_t right_idx = construct(mid, end);
 
   nodes[node_idx] = BVHNode::internal(
       left_idx, right_idx, axis,
       BoundingBox::box_union(nodes[left_idx].box, nodes[right_idx].box));
+
+  return node_idx;
 }
 
 bool BVH::hit(const Ray &ray, const real t_min, const real t_max,

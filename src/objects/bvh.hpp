@@ -34,7 +34,8 @@ struct BVH : public Hittable {
       : primitives(primitives) {
     Timer timer;
     nodes.reserve(2 * primitives.size() - 1);
-    construct(0, 0, primitives.size());
+    construct(0, primitives.size());
+
     const real elapsed_nanoseconds = timer.elapsed_nanoseconds();
     fmt::println(
         "Constructed BVH on {} primitives, using {} nodes in {:.3f} ns",
@@ -47,7 +48,7 @@ struct BVH : public Hittable {
 
   // Recursively constructs a BVH with the primitives in indices [start, end),
   // and places the relevant information at index node_index.
-  void construct(const size_t node_idx, const size_t start, const size_t end);
+  size_t construct(const size_t start, const size_t end);
 
   virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
