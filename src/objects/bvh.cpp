@@ -21,8 +21,8 @@ BVHTree::split_and_partition(const size_t start_idx, const size_t end_idx) {
               });
 
     // 2. For every split, compute the bounding boxes of the two partitions
-    std::vector<real> prefix_sah(num_primitives + 1);
-    std::vector<real> suffix_sah(num_primitives + 1);
+    std::vector<real> prefix_sah(num_primitives);
+    std::vector<real> suffix_sah(num_primitives);
 
     // prefix_sah[i] is the surface area of the bounding box for the first i
     // primitives
@@ -105,14 +105,11 @@ size_t BVHFlatTree::construct(std::shared_ptr<BVHTree::BVHTreeNode> node) {
 bool BVHFlatTree::recursive_hit(const Ray &ray, real t_min, real t_max,
                                 HitRecord &record,
                                 const size_t node_idx) const {
-  const BVHNode &node = nodes[node_idx];
-  const auto &hit_interval = node.box.hit_interval(ray, t_min, t_max);
-  if (!hit_interval.has_value())
+  t_max = std::min(t_max, record.t);
+  if (t_min >= t_max)
     return false;
-  const auto &[t_min_hit, t_max_hit] = hit_interval.value();
-  t_min = t_min_hit;
-  t_max = t_max_hit;
 
+  const BVHNode &node = nodes[node_idx];
   if (node.is_leaf()) {
     real closest_so_far = t_max;
     bool hit_anything = false;
@@ -127,18 +124,44 @@ bool BVHFlatTree::recursive_hit(const Ray &ray, real t_min, real t_max,
     }
 
     return hit_anything;
+  }
 
+  const size_t left_index = node_idx + 1;
+  const size_t right_index = node.right_index;
+  const BVHNode &left_node = nodes[left_index];
+  const BVHNode &right_node = nodes[right_index];
+
+  const auto left_interval = left_node.box.hit_interval(ray, t_min, t_max);
+  const auto right_interval = right_node.box.hit_interval(ray, t_min, t_max);
+  const bool left_valid = left_interval.has_value();
+  const bool right_valid = right_interval.has_value();
+
+  if (!left_valid && !right_valid) {
+    return false;
+  } else if (left_valid && !right_valid) {
+    const auto &[left_min, left_max] = left_interval.value();
+    return recursive_hit(ray, left_min, left_max, record, left_index);
+  } else if (!left_valid && right_valid) {
+    const auto &[right_min, right_max] = right_interval.value();
+    return recursive_hit(ray, right_min, right_max, record, right_index);
   } else {
-    const bool left_first = ray.direction[node.axis] > 0;
-    const size_t left_index = node_idx + 1;
-    const size_t right_index = node.right_index;
-    const size_t first_index = left_first ? left_index : right_index;
-    const size_t second_index = left_first ? right_index : left_index;
-    const bool hit_first =
-        recursive_hit(ray, t_min, t_max, record, first_index);
-    const bool hit_second = recursive_hit(
-        ray, t_min, hit_first ? record.t : t_max, record, second_index);
-    return hit_first | hit_second;
+    const auto &[left_min, left_max] = left_interval.value();
+    const auto &[right_min, right_max] = right_interval.value();
+
+    const bool left_first = left_max < right_max;
+    if (left_first) {
+      const bool hit_left =
+          recursive_hit(ray, left_min, left_max, record, left_index);
+      const bool hit_right =
+          recursive_hit(ray, right_min, right_max, record, right_index);
+      return hit_left | hit_right;
+    } else {
+      const bool hit_right =
+          recursive_hit(ray, right_min, right_max, record, right_index);
+      const bool hit_left =
+          recursive_hit(ray, left_min, left_max, record, left_index);
+      return hit_left | hit_right;
+    }
   }
 }
 
