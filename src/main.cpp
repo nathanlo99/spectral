@@ -96,7 +96,7 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
       std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
   world->emplace<Sphere>(vec3(4, 1, 0), 1.0, material3);
 
-  return std::make_shared<BVH>(world->objects);
+  return std::make_shared<BVHFlatTree>(world->objects);
 }
 
 void debug() {

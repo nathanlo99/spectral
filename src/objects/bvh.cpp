@@ -54,6 +54,14 @@ BVHTree::split_and_partition(const size_t start_idx, const size_t end_idx) {
     }
   }
 
+  const int best_axis = best_split.first;
+  std::sort(primitives.begin() + start_idx, primitives.begin() + end_idx,
+            [best_axis](const std::shared_ptr<Hittable> &a,
+                        const std::shared_ptr<Hittable> &b) {
+              return a->bounding_box().min[best_axis] <
+                     b->bounding_box().min[best_axis];
+            });
+
   const real leaf_cost = num_primitives;
   const int max_primitives = (1 << 16) - 1;
   const bool make_leaf =
