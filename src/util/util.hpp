@@ -28,8 +28,9 @@ using mat4 = glm::mat<4, 4, real, glm::defaultp>;
 
 #define debug_assert_eq(a, b, message, ...)                                    \
   if ((a) != (b))                                                              \
-    throw std::runtime_error(fmt::format("{}:{} -- ", __FILE__, __LINE__) +    \
-                             fmt::format(message, ##__VA_ARGS__));
+    throw std::runtime_error(                                                  \
+        fmt::format("{}:{} -- ({} != {}) -- ", __FILE__, __LINE__, (a), (b)) + \
+        fmt::format(message, ##__VA_ARGS__));
 
 constexpr bool near_zero(const real num) {
   return std::abs(num) < 2 * std::numeric_limits<real>::epsilon();

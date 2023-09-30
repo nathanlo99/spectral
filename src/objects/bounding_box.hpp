@@ -62,7 +62,7 @@ struct BoundingBox {
   }
 
   __attribute((hot)) constexpr inline std::optional<real>
-  hit(const Ray &ray, const real t_min, const real t_max) {
+  hit(const Ray &ray, const real t_min, const real t_max) const {
     const auto interval = hit_interval(ray, t_min, t_max);
     return interval.has_value() ? std::make_optional(interval->first)
                                 : std::nullopt;
