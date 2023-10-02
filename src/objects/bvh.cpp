@@ -8,7 +8,7 @@
 std::optional<std::pair<int, size_t>>
 BVHTree::split_and_partition(const size_t start_idx, const size_t end_idx) {
   const int num_primitives = end_idx - start_idx;
-  std::pair<int, int> best_split = {0, 1};
+  std::pair<int, int> best_split = {0, start_idx + 1};
   real best_cost = INFINITY;
 
   for (int axis = 0; axis < 3; ++axis) {

@@ -74,6 +74,12 @@ struct BVHFlatTree : public Hittable {
     fmt::println(
         "Constructed BVHFlatTree on {} primitives, using {} nodes in {:.3f} ns",
         primitives.size(), nodes.size(), elapsed_nanoseconds);
+
+    // Find the node with the most primitives
+    uint16_t max_primitives = 0;
+    for (const auto &node : nodes)
+      max_primitives = std::max(max_primitives, node.num_primitives);
+    fmt::println("Max primitives in a node: {}", max_primitives);
   }
 
   virtual ~BVHFlatTree() {}
