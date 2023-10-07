@@ -95,12 +95,6 @@ struct BVHFlatTree : public Hittable {
                      const size_t node_idx) const;
 
   virtual BoundingBox bounding_box() const override { return nodes[0].box; }
-
-  virtual void
-  children(std::vector<std::shared_ptr<Hittable>> &result) override {
-    for (const auto &primitive : primitives)
-      primitive->children(result);
-  }
 };
 
 struct BVH : public Hittable {
@@ -162,10 +156,4 @@ struct BVH : public Hittable {
   virtual BoundingBox bounding_box() const override { return nodes[0].box; }
 
   void debug_print() const;
-
-  virtual void
-  children(std::vector<std::shared_ptr<Hittable>> &result) override {
-    for (const auto &primitive : primitives)
-      primitive->children(result);
-  }
 };

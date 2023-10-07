@@ -10,9 +10,9 @@ struct HitRecord;
 struct Material;
 
 struct Sphere : public Hittable, std::enable_shared_from_this<Sphere> {
-  vec3 center = vec3(0.0);
-  real radius = 1.0;
-  std::shared_ptr<Material> material;
+  const vec3 center = vec3(0.0);
+  const real radius = 1.0;
+  const std::shared_ptr<Material> material;
 
   Sphere(const vec3 &center, const real radius,
          std::shared_ptr<Material> material)
@@ -24,8 +24,4 @@ struct Sphere : public Hittable, std::enable_shared_from_this<Sphere> {
   virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;
   virtual BoundingBox bounding_box() const override;
-  virtual void
-  children(std::vector<std::shared_ptr<Hittable>> &result) override {
-    result.push_back(shared_from_this());
-  }
 };

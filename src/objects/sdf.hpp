@@ -17,9 +17,9 @@ struct SignedDistanceField : public Hittable,
   using func_t = std::function<real(const vec3 &)>;
   using material_func_t =
       std::function<std::shared_ptr<Material>(const vec3 &)>;
-  func_t func;
-  std::shared_ptr<Material> material;
-  BoundingBox box;
+  const func_t func;
+  const std::shared_ptr<Material> material;
+  const BoundingBox box;
 
   SignedDistanceField(const func_t &func,
                       const std::shared_ptr<Material> &material,
@@ -34,9 +34,4 @@ struct SignedDistanceField : public Hittable,
                    HitRecord &record) const override;
 
   virtual BoundingBox bounding_box() const override { return box; }
-
-  virtual void
-  children(std::vector<std::shared_ptr<Hittable>> &result) override {
-    result.push_back(shared_from_this());
-  }
 };

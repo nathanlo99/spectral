@@ -5,7 +5,6 @@
 
 bool HittableList::hit(const Ray &ray, const real t_min, const real t_max,
                        HitRecord &record) const {
-  HitRecord temp_record;
   bool hit_anything = false;
   real closest_so_far = t_max;
 
@@ -14,10 +13,9 @@ bool HittableList::hit(const Ray &ray, const real t_min, const real t_max,
     if (!t_hit_box.has_value())
       continue;
 
-    if (object->hit(ray, t_hit_box.value(), closest_so_far, temp_record)) {
+    if (object->hit(ray, t_hit_box.value(), closest_so_far, record)) {
       hit_anything = true;
-      closest_so_far = temp_record.t;
-      record = temp_record;
+      closest_so_far = record.t;
     }
   }
 

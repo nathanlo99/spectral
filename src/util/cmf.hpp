@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "util.hpp"
 #include "util/piecewise_linear.hpp"
+#include "util/util.hpp"
 
 #include <array>
 #include <tuple>

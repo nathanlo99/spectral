@@ -19,7 +19,7 @@ bool SignedDistanceField::hit(const Ray &ray, const real t_min,
     const vec3 pos = ray.at(t);
     const real distance_to_surface = func(pos);
     if (distance_to_surface < eps) {
-      return record.register_hit(ray, t, get_normal(pos), material);
+      return record.register_hit(ray, t, get_normal(pos), material.get());
     }
     t += distance_to_surface;
   }

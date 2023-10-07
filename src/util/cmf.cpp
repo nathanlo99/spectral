@@ -2,8 +2,9 @@
 #include "cmf.hpp"
 
 #include <array>
+#include <tuple>
 
-const std::array<std::tuple<real, real, real, real>, 471> cmf_table = {
+constexpr std::array<std::tuple<real, real, real, real>, 471> cmf_table = {
     std::make_tuple(360, 0.000129900000000, 0.000003917000000, 0.00060610000),
     std::make_tuple(361, 0.000145847000000, 0.000004393581000, 0.00068087920),
     std::make_tuple(362, 0.000163802100000, 0.000004929604000, 0.00076514560),

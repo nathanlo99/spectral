@@ -34,8 +34,8 @@ constexpr inline vec3 gamma_correct_pixel(const vec3 &pixel) {
 }
 
 template <typename Pixel> struct Image {
-  size_t m_width = 0;
-  size_t m_height = 0;
+  const size_t m_width;
+  const size_t m_height;
   std::vector<Pixel> m_pixels;
 
   constexpr Image(const size_t width, const size_t height)
@@ -49,7 +49,7 @@ template <typename Pixel> struct Image {
   }
 
   void add_pixel_sample(const size_t row, const size_t col,
-                        const Pixel::sample_t &sample) {
+                        const typename Pixel::sample_t &sample) {
     debug_assert(row < m_height, "row ({}) >= m_height ({})", row, m_height);
     debug_assert(col < m_width, "col ({}) >= m_width ({})", col, m_width);
     m_pixels[row * m_width + col].add_sample(sample);
@@ -115,8 +115,8 @@ struct RGBVariancePixel {
 
 struct SpectralPixel {
   struct sample_t {
-    real wavelength;
-    real value;
+    const real wavelength;
+    const real value;
     constexpr sample_t(const real wavelength, const real value)
         : wavelength(wavelength), value(value) {}
   };

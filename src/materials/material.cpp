@@ -1,8 +1,7 @@
 
-#include "dielectric_material.hpp"
+#include "material.hpp"
 
 #include "objects/hit_record.hpp"
-#include "objects/hittable.hpp"
 
 bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
                                  const HitRecord &record, vec3 &attenuation,
@@ -30,4 +29,23 @@ bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
 
   scattered = Ray(ray.at(record.t), scattered_direction);
   return true;
+}
+
+bool DiffuseMaterial::scatter(RNG &random, const Ray &ray,
+                              const HitRecord &record, vec3 &attenuation,
+                              Ray &scattered) const {
+  const vec3 scatter_direction = record.normal + random.random_unit_vec3();
+  scattered = Ray(ray.at(record.t), scatter_direction);
+  attenuation = albedo;
+  return true;
+}
+
+bool ReflectiveMaterial::scatter(RNG &random, const Ray &ray,
+                                 const HitRecord &record, vec3 &attenuation,
+                                 Ray &scattered) const {
+  const vec3 reflected = glm::reflect(ray.direction, record.normal);
+  scattered =
+      Ray(ray.at(record.t), reflected + fuzz * random.random_in_unit_sphere());
+  attenuation = albedo;
+  return glm::dot(scattered.direction, record.normal) > 0;
 }

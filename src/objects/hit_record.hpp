@@ -11,11 +11,10 @@ struct HitRecord {
   real t = INFINITY;
   bool front_face;
 
-  std::shared_ptr<Material> material;
+  Material *material;
 
   inline bool register_hit(const Ray &ray, const real t,
-                           const vec3 &outward_normal,
-                           std::shared_ptr<Material> material) {
+                           const vec3 &outward_normal, Material *material) {
     if (t > this->t)
       return false;
     this->t = t;

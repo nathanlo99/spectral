@@ -6,9 +6,6 @@
 #include "fmt/compile.h"
 #include "fmt/core.h"
 
-#include "materials/dielectric_material.hpp"
-#include "materials/diffuse_material.hpp"
-#include "materials/reflective_material.hpp"
 #include "objects/bvh.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
@@ -53,7 +50,7 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
   std::shared_ptr<HittableList> world = std::make_shared<HittableList>();
 
   const auto ground_material =
-      std::make_shared<DiffuseMaterial>(vec3(0.5, 0.5, 0.5));
+      std::make_shared<Material>(DiffuseMaterial(vec3(0.5, 0.5, 0.5)));
   world->emplace<Sphere>(vec3(0, -1000, 0), 1000, ground_material);
 
   for (int a = -11; a < 11; a++) {
@@ -67,33 +64,35 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
           // diffuse
           const vec3 albedo = random.random_vec3() * random.random_vec3();
           const auto sphere_material =
-              std::make_shared<DiffuseMaterial>(albedo);
+              std::make_shared<Material>(DiffuseMaterial(albedo));
           world->emplace<Sphere>(center, 0.2, sphere_material);
         } else if (choose_mat < 0.95) {
           // metal
           const vec3 albedo = random.random_vec3(0.5, 1.0);
           const real fuzz = random.random_real(0, 0.5);
           const auto sphere_material =
-              std::make_shared<ReflectiveMaterial>(albedo, fuzz);
+              std::make_shared<Material>(ReflectiveMaterial(albedo, fuzz));
           world->emplace<Sphere>(center, 0.2, sphere_material);
         } else {
           // glass
           const auto sphere_material =
-              std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
+              std::make_shared<Material>(DielectricMaterial(vec3(1.0), 1.5));
           world->emplace<Sphere>(center, 0.2, sphere_material);
         }
       }
     }
   }
 
-  const auto material1 = std::make_shared<DielectricMaterial>(vec3(1.0), 1.5);
+  const auto material1 =
+      std::make_shared<Material>(DielectricMaterial(vec3(1.0), 1.5));
   world->emplace<Sphere>(vec3(0, 1, 0), 1.0, material1);
 
-  const auto material2 = std::make_shared<DiffuseMaterial>(vec3(0.4, 0.2, 0.1));
+  const auto material2 =
+      std::make_shared<Material>(DiffuseMaterial(vec3(0.4, 0.2, 0.1)));
   world->emplace<Sphere>(vec3(-4, 1, 0), 1.0, material2);
 
   const auto material3 =
-      std::make_shared<ReflectiveMaterial>(vec3(0.7, 0.6, 0.5), 0.0);
+      std::make_shared<Material>(ReflectiveMaterial(vec3(0.7, 0.6, 0.5), 0.0));
   world->emplace<Sphere>(vec3(4, 1, 0), 1.0, material3);
 
   return std::make_shared<BVHFlatTree>(world->objects);
