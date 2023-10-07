@@ -4,7 +4,7 @@
 #include "objects/hit_record.hpp"
 
 bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
-                                 const HitRecord &record, vec3 &attenuation,
+                                 const HitRecord &record, Colour &attenuation,
                                  Ray &scattered) const {
 
   constexpr auto schlick_reflection_probability = [](const real cos_theta,
@@ -32,7 +32,7 @@ bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
 }
 
 bool DiffuseMaterial::scatter(RNG &random, const Ray &ray,
-                              const HitRecord &record, vec3 &attenuation,
+                              const HitRecord &record, Colour &attenuation,
                               Ray &scattered) const {
   const vec3 scatter_direction = record.normal + random.random_unit_vec3();
   scattered = Ray(ray.at(record.t), scatter_direction);
@@ -41,7 +41,7 @@ bool DiffuseMaterial::scatter(RNG &random, const Ray &ray,
 }
 
 bool ReflectiveMaterial::scatter(RNG &random, const Ray &ray,
-                                 const HitRecord &record, vec3 &attenuation,
+                                 const HitRecord &record, Colour &attenuation,
                                  Ray &scattered) const {
   const vec3 reflected = glm::reflect(ray.direction, record.normal);
   scattered =

@@ -18,15 +18,15 @@
 #include "util/random.hpp"
 #include "util/timer.hpp"
 
-constexpr vec3 get_background_colour(const Ray &ray) {
+constexpr Colour get_background_colour(const Ray &ray) {
   const real t = 0.5 * (ray.direction.y + 1.0);
-  return (static_cast<real>(1.0) - t) * vec3(1.0, 1.0, 1.0) +
-         t * vec3(0.5, 0.7, 1.0);
+  return (static_cast<real>(1.0) - t) * Colour(1.0, 1.0, 1.0) +
+         t * Colour(0.5, 0.7, 1.0);
 }
 
-vec3 ray_colour(RNG &random, const size_t max_depth, const Ray &ray,
-                const Scene &scene) {
-  vec3 colour(1.0, 1.0, 1.0);
+Colour ray_colour(RNG &random, const size_t max_depth, const Ray &ray,
+                  const Scene &scene) {
+  Colour colour(1.0, 1.0, 1.0);
   Ray current_ray = ray;
   for (size_t depth = 0; depth < max_depth; ++depth) {
     HitRecord record;
@@ -34,23 +34,23 @@ vec3 ray_colour(RNG &random, const size_t max_depth, const Ray &ray,
       return colour * get_background_colour(current_ray);
 
     Ray scattered;
-    vec3 attenuation;
+    Colour attenuation;
     // TODO: Return emitted light
     if (!record.material->scatter(random, current_ray, record, attenuation,
                                   scattered))
-      return vec3(0.0);
+      return Colour(0.0, 0.0, 0.0);
 
     colour *= attenuation;
     current_ray = scattered;
   }
-  return vec3(0.0);
+  return Colour(0.0, 0.0, 0.0);
 }
 
 std::shared_ptr<Hittable> random_scene(RNG &random) {
   std::shared_ptr<HittableList> world = std::make_shared<HittableList>();
 
   const auto ground_material =
-      std::make_shared<Material>(DiffuseMaterial(vec3(0.5, 0.5, 0.5)));
+      std::make_shared<Material>(DiffuseMaterial(Colour(0.5, 0.5, 0.5)));
   world->emplace<Sphere>(vec3(0, -1000, 0), 1000, ground_material);
 
   for (int a = -11; a < 11; a++) {
@@ -62,37 +62,37 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
       if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
         if (choose_mat < 0.8) {
           // diffuse
-          const vec3 albedo = random.random_vec3() * random.random_vec3();
+          const Colour albedo = random.random_vec3() * random.random_vec3();
           const auto sphere_material =
               std::make_shared<Material>(DiffuseMaterial(albedo));
           world->emplace<Sphere>(center, 0.2, sphere_material);
         } else if (choose_mat < 0.95) {
           // metal
-          const vec3 albedo = random.random_vec3(0.5, 1.0);
+          const Colour albedo = random.random_vec3(0.5, 1.0);
           const real fuzz = random.random_real(0, 0.5);
           const auto sphere_material =
               std::make_shared<Material>(ReflectiveMaterial(albedo, fuzz));
           world->emplace<Sphere>(center, 0.2, sphere_material);
         } else {
           // glass
-          const auto sphere_material =
-              std::make_shared<Material>(DielectricMaterial(vec3(1.0), 1.5));
+          const auto sphere_material = std::make_shared<Material>(
+              DielectricMaterial(Colour(1.0, 1.0, 1.0), 1.5));
           world->emplace<Sphere>(center, 0.2, sphere_material);
         }
       }
     }
   }
 
-  const auto material1 =
-      std::make_shared<Material>(DielectricMaterial(vec3(1.0), 1.5));
+  const auto material1 = std::make_shared<Material>(
+      DielectricMaterial(Colour(1.0, 1.0, 1.0), 1.5));
   world->emplace<Sphere>(vec3(0, 1, 0), 1.0, material1);
 
   const auto material2 =
-      std::make_shared<Material>(DiffuseMaterial(vec3(0.4, 0.2, 0.1)));
+      std::make_shared<Material>(DiffuseMaterial(Colour(0.4, 0.2, 0.1)));
   world->emplace<Sphere>(vec3(-4, 1, 0), 1.0, material2);
 
-  const auto material3 =
-      std::make_shared<Material>(ReflectiveMaterial(vec3(0.7, 0.6, 0.5), 0.0));
+  const auto material3 = std::make_shared<Material>(
+      ReflectiveMaterial(Colour(0.7, 0.6, 0.5), 0.0));
   world->emplace<Sphere>(vec3(4, 1, 0), 1.0, material3);
 
   return std::make_shared<BVHFlatTree>(world->objects);
@@ -173,7 +173,7 @@ int main() {
       for (size_t sample = 0; sample < samples_per_pixel; ++sample) {
         const vec2 jitter = random.random_vec2(-0.5, 0.5);
         const Ray ray = camera.get_ray(pixel + jitter, random);
-        const vec3 colour = ray_colour(random, max_depth, ray, scene);
+        const Colour colour = ray_colour(random, max_depth, ray, scene);
         image.add_pixel_sample(row, col, colour);
         variance_image.add_pixel_sample(row, col, colour);
         ++num_samples;

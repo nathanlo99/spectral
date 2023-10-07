@@ -20,17 +20,22 @@ using vec2 = glm::vec<2, real, glm::defaultp>;
 using vec3 = glm::vec<3, real, glm::defaultp>;
 using vec4 = glm::vec<4, real, glm::defaultp>;
 using mat4 = glm::mat<4, 4, real, glm::defaultp>;
+using Colour = vec3;
 
 #define debug_assert(expr, message, ...)                                       \
-  if (!(expr))                                                                 \
-    throw std::runtime_error(fmt::format("{}:{} -- ", __FILE__, __LINE__) +    \
-                             fmt::format(message, ##__VA_ARGS__));
+  do {                                                                         \
+    if (!(expr))                                                               \
+      throw std::runtime_error(fmt::format("{}:{} -- ", __FILE__, __LINE__) +  \
+                               fmt::format(message, ##__VA_ARGS__));           \
+  } while (0)
 
 #define debug_assert_eq(a, b, message, ...)                                    \
-  if ((a) != (b))                                                              \
-    throw std::runtime_error(                                                  \
-        fmt::format("{}:{} -- ({} != {}) -- ", __FILE__, __LINE__, (a), (b)) + \
-        fmt::format(message, ##__VA_ARGS__));
+  do {                                                                         \
+    if ((a) != (b))                                                            \
+      throw std::runtime_error(fmt::format("{}:{} -- ({} != {}) -- ",          \
+                                           __FILE__, __LINE__, (a), (b)) +     \
+                               fmt::format(message, ##__VA_ARGS__));           \
+  } while (0)
 
 constexpr bool near_zero(const real num) {
   return std::abs(num) < 2 * std::numeric_limits<real>::epsilon();

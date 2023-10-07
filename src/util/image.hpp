@@ -14,7 +14,7 @@ constexpr inline real gamma_correct_real(const real d) {
 
 constexpr inline uint8_t to_byte(const real d) { return 255.99 * d; }
 
-constexpr inline RGBByte to_bytes(const vec3 &pixel) {
+constexpr inline RGBByte to_bytes(const Colour &pixel) {
   RGBByte result;
   result[0] = to_byte(std::clamp<real>(pixel[0], 0.0, 1.0));
   result[1] = to_byte(std::clamp<real>(pixel[1], 0.0, 1.0));
@@ -23,10 +23,10 @@ constexpr inline RGBByte to_bytes(const vec3 &pixel) {
 }
 
 template <bool gamma_correct = true>
-constexpr inline vec3 gamma_correct_pixel(const vec3 &pixel) {
+constexpr inline Colour gamma_correct_pixel(const Colour &pixel) {
   if constexpr (!gamma_correct)
     return pixel;
-  vec3 result;
+  Colour result;
   result[0] = gamma_correct_real(pixel[0]);
   result[1] = gamma_correct_real(pixel[1]);
   result[2] = gamma_correct_real(pixel[2]);
@@ -76,39 +76,39 @@ template <typename Pixel> struct Image {
 };
 
 struct RGBPixel {
-  using sample_t = vec3;
-  vec3 m_mean = vec3(0.0);
+  using sample_t = Colour;
+  Colour m_mean = Colour(0.0, 0.0, 0.0);
   real m_num_samples = 0;
 
   constexpr RGBPixel() {}
-  constexpr RGBPixel(const vec3 &data) : m_mean(data), m_num_samples(1) {}
+  constexpr RGBPixel(const Colour &data) : m_mean(data), m_num_samples(1) {}
 
   constexpr inline void add_sample(const sample_t &_sample) {
-    const vec3 sample = remove_nans(_sample);
+    const Colour sample = remove_nans(_sample);
     m_num_samples += 1;
     m_mean += (sample - m_mean) / m_num_samples;
   }
-  constexpr inline vec3 to_pixel() const { return m_mean; }
+  constexpr inline Colour to_pixel() const { return m_mean; }
 };
 
 struct RGBVariancePixel {
-  using sample_t = vec3;
-  vec3 m_mean = vec3(0.0);
-  vec3 m_variance = vec3(0.0);
+  using sample_t = Colour;
+  Colour m_mean = Colour(0.0);
+  Colour m_variance = Colour(0.0);
   real m_num_samples = 0;
 
-  constexpr RGBVariancePixel(const vec3 &data = vec3(0.0, 0.0, 0.0))
+  constexpr RGBVariancePixel(const Colour &data = Colour(0.0, 0.0, 0.0))
       : m_mean(data), m_variance(0.0) {}
   constexpr inline void add_sample(const sample_t &_sample) {
-    const vec3 sample = remove_nans(_sample);
-    const vec3 old_mean = m_mean;
+    const Colour sample = remove_nans(_sample);
+    const Colour old_mean = m_mean;
     m_num_samples += 1;
     m_mean += (sample - m_mean) / m_num_samples;
     m_variance += (sample - old_mean) * (sample - m_mean);
   }
-  constexpr inline vec3 to_pixel() const {
+  constexpr inline Colour to_pixel() const {
     if (m_num_samples == 0)
-      return vec3(0.0);
+      return Colour(0.0);
     return m_variance / m_num_samples;
   }
 };
@@ -133,7 +133,7 @@ struct SpectralPixel {
     m_function.add_point(sample.wavelength, sample.value);
   }
 
-  inline vec3 to_pixel() const {
+  inline Colour to_pixel() const {
     const auto combine = [](const PiecewiseLinear &intensities,
                             const PiecewiseLinear &cmf_component) {
       return intensities.dot_product(cmf_component, min_wavelength,
@@ -148,7 +148,7 @@ struct SpectralPixel {
     const real R = 3.2404542 * X - 1.5371385 * Y - 0.4985314 * Z;
     const real G = -0.9692660 * X + 1.8760108 * Y + 0.0415560 * Z;
     const real B = 0.0556434 * X - 0.2040259 * Y + 1.0572252 * Z;
-    return vec3(R, G, B);
+    return Colour(R, G, B);
   }
 };
 
