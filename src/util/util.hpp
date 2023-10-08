@@ -23,6 +23,13 @@ using vec4 = glm::vec<4, real, glm::defaultp>;
 using mat4 = glm::mat<4, 4, real, glm::defaultp>;
 using Colour = vec3;
 
+#ifdef NDEBUG
+
+#define debug_assert(expr, message, ...)
+#define debug_assert_eq(a, b, message, ...)
+
+#else
+
 #define debug_assert(expr, message, ...)                                       \
   do {                                                                         \
     if (!(expr))                                                               \
@@ -37,6 +44,8 @@ using Colour = vec3;
                                            __FILE__, __LINE__, (a), (b)) +     \
                                fmt::format(message, ##__VA_ARGS__));           \
   } while (0)
+
+#endif
 
 constexpr bool near_zero(const real num) {
   return std::abs(num) < 2 * std::numeric_limits<real>::epsilon();
