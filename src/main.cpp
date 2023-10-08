@@ -11,7 +11,8 @@
 #include "util/piecewise_linear.hpp"
 #include "util/random.hpp"
 
-std::shared_ptr<Hittable> random_scene(RNG &random) {
+std::shared_ptr<Hittable> random_scene() {
+  RNG random;
   std::shared_ptr<HittableList> world = std::make_shared<HittableList>();
 
   const auto ground_material =
@@ -117,9 +118,6 @@ int main() {
   camera.set_output_image(image);
 
   Scene scene;
-  RNG random;
-  scene.add(random_scene(random));
-
-  const size_t max_depth = 100, samples_per_pixel = 100;
-  scene.render(camera, image, samples_per_pixel, max_depth);
+  scene.add(random_scene());
+  scene.render(camera, image, 100, 100);
 }

@@ -61,10 +61,10 @@ struct Scene {
       std::cout << std::flush;
     };
 
+    RNG random;
     for (size_t row = 0; row < image.m_height; ++row) {
       for (size_t col = 0; col < image.m_width; ++col) {
         const vec2 pixel = vec2(col + 0.5, row + 0.5);
-        RNG random(row * image.m_width + col);
         for (size_t sample = 0; sample < samples_per_pixel; ++sample) {
           const vec2 jitter = random.random_vec2(-0.5, 0.5);
           const Ray ray = camera.get_ray(pixel + jitter, random);
@@ -94,5 +94,23 @@ struct Scene {
     image.template write_png<true>("public_output/result.png");
 
     fmt::println("\nDone! Took {:.2f} seconds.", elapsed_seconds);
+  }
+
+  template <typename Pixel>
+  void just_render(const Camera &camera, OutputImage<Pixel> &image,
+                   const size_t samples_per_pixel, const size_t max_depth) {
+    RNG random;
+    for (size_t row = 0; row < image.m_height; ++row) {
+      for (size_t col = 0; col < image.m_width; ++col) {
+        const vec2 pixel = vec2(col + 0.5, row + 0.5);
+        for (size_t sample = 0; sample < samples_per_pixel; ++sample) {
+          const vec2 jitter = random.random_vec2(-0.5, 0.5);
+          const Ray ray = camera.get_ray(pixel + jitter, random);
+          const Colour colour = ray_colour(random, max_depth, ray);
+          image.add_pixel_sample(row, col, colour);
+        }
+      }
+    }
+    image.template write_png<true>("output/progress.png");
   }
 };
