@@ -6,8 +6,7 @@
 struct Ray {
   vec3 origin, direction;
 
-  constexpr Ray(const vec3 &origin = vec3(0.0),
-                const vec3 &direction = vec3(1.0, 0.0, 0.0))
+  constexpr Ray(const vec3 &origin, const vec3 &direction)
       : origin(origin), direction(glm::normalize(direction)) {}
 
   constexpr inline vec3 at(const real t) const {

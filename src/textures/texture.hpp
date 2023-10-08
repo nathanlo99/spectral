@@ -12,6 +12,19 @@ struct SolidColourTexture {
   constexpr Colour value(const vec2 &, const vec3 &) const { return colour; }
 };
 
-using Texture = std::variant<SolidColourTexture>;
-Colour get_texture_value(const Texture &texture, const vec2 &uv,
-                         const vec3 &point);
+struct Texture {
+  using TextureVariant = std::variant<SolidColourTexture>;
+  TextureVariant texture;
+
+  constexpr Texture(const Colour &colour)
+      : texture(SolidColourTexture(colour)) {}
+
+  template <typename T>
+  constexpr explicit Texture(const T &texture) : texture(texture) {}
+
+  constexpr Colour value(const vec2 &uv, const vec3 &point) const {
+    return std::visit(
+        [uv, point](const auto &texture) { return texture.value(uv, point); },
+        texture);
+  }
+};

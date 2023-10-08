@@ -13,7 +13,8 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "util/stb.hpp"
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 using real = double;
 using vec2 = glm::vec<2, real, glm::defaultp>;

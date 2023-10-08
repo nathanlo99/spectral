@@ -6,14 +6,15 @@
 #include "fmt/compile.h"
 #include "fmt/core.h"
 
+#include "materials/material.hpp"
+
 #include "objects/bvh.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
-#include "objects/sdf.hpp"
 #include "objects/sphere.hpp"
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
-#include "util/image.hpp"
+#include "util/output_image.hpp"
 #include "util/piecewise_linear.hpp"
 #include "util/random.hpp"
 #include "util/timer.hpp"
@@ -99,7 +100,7 @@ std::shared_ptr<Hittable> random_scene(RNG &random) {
 }
 
 void debug() {
-  Image<SpectralPixel> image(800, 800);
+  OutputImage<SpectralPixel> image(800, 800);
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
       const real mean =
@@ -113,8 +114,8 @@ void debug() {
       for (real wavelength = 400.0; wavelength <= 700.0; wavelength += 2.5) {
         image.add_pixel_sample(row, col, {wavelength, f(wavelength)});
       }
-      image.m_pixels[row * image.m_width + col].m_function.normalize(
-          400.0, 700.0, 300.0);
+      image.m_pixels[row * image.m_width + col].m_function.normalize(400.0,
+                                                                     700.0);
     }
   }
 
@@ -191,6 +192,7 @@ int main() {
     }
   }
   print_progress_update();
+  const real elapsed_seconds = timer.elapsed_seconds();
 
   image.write_png<true>("output/progress.png");
   image.write_png<true>("output/result.png");
@@ -199,6 +201,5 @@ int main() {
   // Gamma-correction approximates a sqrt, so variance becomes stddev
   variance_image.write_png<true>("output/stddev.png");
 
-  const real elapsed_seconds = timer.elapsed_seconds();
   fmt::println("\nDone! Took {:.2f} seconds.", elapsed_seconds);
 }

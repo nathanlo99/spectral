@@ -7,19 +7,24 @@
 struct Material;
 
 struct HitRecord {
-  vec3 normal;
   real t = INFINITY;
+  vec3 pos;
+  vec2 uv;
+  vec3 normal;
   bool front_face;
 
   Material *material;
 
-  inline bool register_hit(const Ray &ray, const real t,
-                           const vec3 &outward_normal, Material *material) {
-    if (t > this->t)
+  constexpr inline bool register_hit(const Ray &ray, const real t,
+                                     const vec2 &uv, const vec3 &outward_normal,
+                                     Material *material) {
+    if (t >= this->t)
       return false;
     this->t = t;
-    this->material = material;
+    this->pos = ray.at(t);
+    this->uv = uv;
     set_face_normal(ray, outward_normal);
+    this->material = material;
     return true;
   }
 

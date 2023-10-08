@@ -14,7 +14,7 @@ bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
     return r0_squared + (1.0 - r0_squared) * std::pow(1.0 - cos_theta, 5.0);
   };
 
-  attenuation = albedo;
+  attenuation = albedo.value(record.uv, record.pos);
 
   const real ior_ratio =
       record.front_face ? (1.0 / refractive_index) : refractive_index;
@@ -27,16 +27,15 @@ bool DielectricMaterial::scatter(RNG &random, const Ray &ray,
       should_reflect ? glm::reflect(ray.direction, record.normal)
                      : glm::refract(ray.direction, record.normal, ior_ratio);
 
-  scattered = Ray(ray.at(record.t), scattered_direction);
+  scattered = Ray(record.pos, scattered_direction);
   return true;
 }
 
-bool DiffuseMaterial::scatter(RNG &random, const Ray &ray,
-                              const HitRecord &record, Colour &attenuation,
-                              Ray &scattered) const {
+bool DiffuseMaterial::scatter(RNG &random, const Ray &, const HitRecord &record,
+                              Colour &attenuation, Ray &scattered) const {
   const vec3 scatter_direction = record.normal + random.random_unit_vec3();
-  scattered = Ray(ray.at(record.t), scatter_direction);
-  attenuation = albedo;
+  scattered = Ray(record.pos, scatter_direction);
+  attenuation = albedo.value(record.uv, record.pos);
   return true;
 }
 
@@ -45,7 +44,7 @@ bool ReflectiveMaterial::scatter(RNG &random, const Ray &ray,
                                  Ray &scattered) const {
   const vec3 reflected = glm::reflect(ray.direction, record.normal);
   scattered =
-      Ray(ray.at(record.t), reflected + fuzz * random.random_in_unit_sphere());
-  attenuation = albedo;
+      Ray(record.pos, reflected + fuzz * random.random_in_unit_sphere());
+  attenuation = albedo.value(record.uv, record.pos);
   return glm::dot(scattered.direction, record.normal) > 0;
 }

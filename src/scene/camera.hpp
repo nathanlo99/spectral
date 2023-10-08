@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "util/image.hpp"
+#include "util/output_image.hpp"
 #include "util/random.hpp"
 #include "util/ray.hpp"
 #include "util/util.hpp"
@@ -21,7 +21,7 @@ struct Camera {
          const real aperture_radius = 0.0);
 
   template <typename Pixel>
-  constexpr inline void set_output_image(const Image<Pixel> &image) {
+  constexpr inline void set_output_image(const OutputImage<Pixel> &image) {
     image_width = image.m_width;
     image_height = image.m_height;
     update_constants();

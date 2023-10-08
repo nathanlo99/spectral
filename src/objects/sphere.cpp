@@ -2,6 +2,17 @@
 #include "sphere.hpp"
 #include "hit_record.hpp"
 
+constexpr vec2 Sphere::get_uv(const vec3 &point) {
+  const real pi = glm::pi<real>();
+  const real theta = std::acos(-point.y);
+  const real phi = std::atan2(-point.z, point.x) + pi;
+
+  const real u = phi / (2 * pi);
+  const real v = theta / pi;
+
+  return vec2(u, v);
+}
+
 bool Sphere::hit(const Ray &ray, const real t_min, const real t_max,
                  HitRecord &record) const {
   const vec3 co = center - ray.origin;
@@ -20,13 +31,15 @@ bool Sphere::hit(const Ray &ray, const real t_min, const real t_max,
   if (t_min < root0 && root0 < t_max) {
     const vec3 hit_point = ray.at(root0);
     const vec3 outward_normal = (hit_point - center) / radius;
-    return record.register_hit(ray, root0, outward_normal, material.get());
+    const vec2 uv = Sphere::get_uv(outward_normal);
+    return record.register_hit(ray, root0, uv, outward_normal, material.get());
   }
 
   if (t_min < root1 && root1 < t_max) {
     const vec3 hit_point = ray.at(root1);
     const vec3 outward_normal = (hit_point - center) / radius;
-    return record.register_hit(ray, root1, outward_normal, material.get());
+    const vec2 uv = Sphere::get_uv(outward_normal);
+    return record.register_hit(ray, root1, uv, outward_normal, material.get());
   }
 
   return false;

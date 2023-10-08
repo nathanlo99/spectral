@@ -9,7 +9,7 @@
 struct HitRecord;
 struct Material;
 
-struct Sphere : public Hittable, std::enable_shared_from_this<Sphere> {
+struct Sphere : public Hittable {
   const vec3 center = vec3(0.0);
   const real radius = 1.0;
   const std::shared_ptr<Material> material;
@@ -20,6 +20,8 @@ struct Sphere : public Hittable, std::enable_shared_from_this<Sphere> {
     debug_assert(radius > 0.0, "Sphere radius must be positive.");
   }
   virtual ~Sphere() {}
+
+  constexpr static vec2 get_uv(const vec3 &point);
 
   virtual bool hit(const Ray &ray, const real t_min, const real t_max,
                    HitRecord &record) const override;

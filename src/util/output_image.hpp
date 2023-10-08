@@ -33,12 +33,12 @@ constexpr inline Colour gamma_correct_pixel(const Colour &pixel) {
   return result;
 }
 
-template <typename Pixel> struct Image {
+template <typename Pixel> struct OutputImage {
   const size_t m_width;
   const size_t m_height;
   std::vector<Pixel> m_pixels;
 
-  constexpr Image(const size_t width, const size_t height)
+  constexpr OutputImage(const size_t width, const size_t height)
       : m_width(width), m_height(height), m_pixels(width * height) {}
 
   constexpr void set_pixel(const size_t row, const size_t col,
@@ -80,8 +80,7 @@ struct RGBPixel {
   Colour m_mean = Colour(0.0, 0.0, 0.0);
   real m_num_samples = 0;
 
-  constexpr RGBPixel() {}
-  constexpr RGBPixel(const Colour &data) : m_mean(data), m_num_samples(1) {}
+  constexpr RGBPixel() = default;
 
   constexpr inline void add_sample(const sample_t &_sample) {
     const Colour sample = remove_nans(_sample);
@@ -93,12 +92,12 @@ struct RGBPixel {
 
 struct RGBVariancePixel {
   using sample_t = Colour;
-  Colour m_mean = Colour(0.0);
-  Colour m_variance = Colour(0.0);
+  Colour m_mean = Colour(0.0, 0.0, 0.0);
+  Colour m_variance = Colour(0.0, 0.0, 0.0);
   real m_num_samples = 0;
 
-  constexpr RGBVariancePixel(const Colour &data = Colour(0.0, 0.0, 0.0))
-      : m_mean(data), m_variance(0.0) {}
+  constexpr RGBVariancePixel() = default;
+
   constexpr inline void add_sample(const sample_t &_sample) {
     const Colour sample = remove_nans(_sample);
     const Colour old_mean = m_mean;
@@ -108,7 +107,7 @@ struct RGBVariancePixel {
   }
   constexpr inline Colour to_pixel() const {
     if (m_num_samples == 0)
-      return Colour(0.0);
+      return Colour(0.0, 0.0, 0.0);
     return m_variance / m_num_samples;
   }
 };
@@ -137,8 +136,7 @@ struct SpectralPixel {
     const auto combine = [](const PiecewiseLinear &intensities,
                             const PiecewiseLinear &cmf_component) {
       return intensities.dot_product(cmf_component, min_wavelength,
-                                     max_wavelength) /
-             (max_wavelength - min_wavelength);
+                                     max_wavelength);
     };
 
     const auto &cmf = ColourMatchingFunction::get();
@@ -152,5 +150,5 @@ struct SpectralPixel {
   }
 };
 
-using RGBImage = Image<RGBPixel>;
-using RGBVarianceImage = Image<RGBVariancePixel>;
+using RGBImage = OutputImage<RGBPixel>;
+using RGBVarianceImage = OutputImage<RGBVariancePixel>;
