@@ -47,11 +47,12 @@ using Colour = vec3;
 
 #endif
 
-constexpr bool near_zero(const real num) {
+constexpr inline bool near_zero(const real num) {
   return std::abs(num) < 2 * std::numeric_limits<real>::epsilon();
 }
 
-constexpr inline real lerp(const real a, const real b, const real t) {
+template <typename T>
+constexpr inline T lerp(const T a, const T b, const real t) {
   return (1.0 - t) * a + t * b;
 }
 
@@ -62,7 +63,7 @@ constexpr inline vec3 remove_nans(const vec3 &v) {
 }
 
 template <> struct fmt::formatter<vec3> : formatter<std::string_view> {
-  auto format(const vec3 &vec, format_context &ctx) const {
+  auto inline format(const vec3 &vec, format_context &ctx) const {
     return formatter<std::string_view>::format(glm::to_string(vec), ctx);
   }
 };

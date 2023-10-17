@@ -64,7 +64,7 @@ std::shared_ptr<Hittable> random_scene() {
   return std::make_shared<BVHFlatTree>(world->objects);
 }
 
-void debug_spectral() {
+void render_spectral() {
   OutputImage<SpectralPixel> image(800, 800);
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
@@ -88,7 +88,7 @@ void debug_spectral() {
   image.write_png<false>("output/spectral.png");
 }
 
-void debug_earth() {
+void render_earth() {
   RGBImage image(640, 360);
   const Texture earth_texture = ImageTexture("res/earthmap.jpg");
   const auto earth_material =
@@ -102,13 +102,10 @@ void debug_earth() {
 
   Scene scene;
   scene.add(globe);
-  scene.render(camera, image, 100, 100);
+  scene.just_render(camera, image, 100, 100);
 }
 
-int main() {
-  // debug_earth();
-  // return 0;
-
+void render() {
   RGBImage image(1200, 800);
   RGBVarianceImage variance_image(image.m_width, image.m_height);
   const vec3 camera_position(13.0, 2.0, 3.0);
@@ -121,3 +118,5 @@ int main() {
   scene.add(random_scene());
   scene.render(camera, image, 100, 100);
 }
+
+int main() { render(); }

@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -flto -Ofast -march=native -ffast-math -Wno-gnu-zero-variadic-macro-arguments")
-set(CMAKE_EXE_LINKER_FLAGS "-pthread -flto -Ofast -ffast-math")
+set(CMAKE_EXE_LINKER_FLAGS "-flto -Ofast -ffast-math")
 
 # Pull in fmt
 include(FetchContent)
