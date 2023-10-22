@@ -1,10 +1,12 @@
 
 #include "materials/material.hpp"
 
+#include "materials/material.hpp"
 #include "objects/bvh.hpp"
 #include "objects/hit_record.hpp"
 #include "objects/hittable.hpp"
 #include "objects/sphere.hpp"
+#include "objects/triangle.hpp"
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
 #include "util/output_image.hpp"
