@@ -29,5 +29,6 @@ struct Camera {
 
   void set_fov(const real fov);
   void update_constants();
-  Ray get_ray(const vec2 pixel, RNG &random) const;
+  Ray get_ray(const vec2 pixel, RNG &random,
+              const real wavelength = 500.0) const;
 };

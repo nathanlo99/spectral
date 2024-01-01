@@ -3,6 +3,7 @@
 
 #include <variant>
 
+#include "util/ior_function.hpp"
 #include "util/random.hpp"
 #include "util/ray.hpp"
 #include "util/util.hpp"
@@ -21,6 +22,7 @@ struct DielectricMaterial {
 
   bool scatter(RNG &random, const Ray &ray, const HitRecord &record,
                Colour &attenuation, Ray &scattered) const;
+  real get_ior(const Ray &) const { return refractive_index; }
 };
 
 struct DiffuseMaterial {
@@ -30,6 +32,7 @@ struct DiffuseMaterial {
 
   bool scatter(RNG &random, const Ray &ray, const HitRecord &record,
                Colour &attenuation, Ray &scattered) const;
+  real get_ior(const Ray &) const { return 1.0; }
 };
 
 struct ReflectiveMaterial {
@@ -41,11 +44,25 @@ struct ReflectiveMaterial {
 
   bool scatter(RNG &random, const Ray &ray, const HitRecord &record,
                Colour &attenuation, Ray &scattered) const;
+  real get_ior(const Ray &) const { return 1.0; }
+};
+
+struct SpectralMaterial {
+  const Texture albedo;
+  const IORFunction ior_function;
+
+  constexpr SpectralMaterial(const Texture &albedo,
+                             const IORFunction &ior_function)
+      : albedo(albedo), ior_function(ior_function) {}
+
+  bool scatter(RNG &random, const Ray &ray, const HitRecord &record,
+               Colour &attenuation, Ray &scattered) const;
+  real get_ior(const Ray &ray) const { return ior_function.get_ior(ray); }
 };
 
 struct Material {
-  using MaterialVariant =
-      std::variant<DielectricMaterial, DiffuseMaterial, ReflectiveMaterial>;
+  using MaterialVariant = std::variant<DielectricMaterial, DiffuseMaterial,
+                                       ReflectiveMaterial, SpectralMaterial>;
   MaterialVariant material;
 
   template <typename T>
@@ -58,6 +75,11 @@ struct Material {
          &scattered](const auto &material) {
           return material.scatter(random, ray, record, attenuation, scattered);
         },
+        material);
+  }
+  real get_ior(const Ray &ray) const {
+    return std::visit(
+        [&ray](const auto &material) { return material.get_ior(ray); },
         material);
   }
 };

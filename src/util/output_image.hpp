@@ -5,7 +5,20 @@
 #include "util/piecewise_linear.hpp"
 #include "util/util.hpp"
 
+#include <map>
+
 using RGBByte = std::array<uint8_t, 3>;
+
+template <typename T> struct AverageWrapper {
+  T m_value = T{};
+  size_t m_num_samples = 0;
+
+  constexpr inline void add_sample(const T &sample) {
+    m_num_samples += 1;
+    m_value += (sample - m_value) / m_num_samples;
+  }
+  constexpr inline T get_value() const { return m_value; }
+};
 
 constexpr inline real gamma_correct_real(const real d) {
   constexpr real gamma = 2.2, gamma_exp = 1.0 / gamma;
@@ -120,16 +133,16 @@ struct SpectralPixel {
         : wavelength(wavelength), value(value) {}
   };
   static constexpr real min_wavelength = 400.0, max_wavelength = 700.0;
-  PiecewiseLinear m_function;
+  std::map<real, AverageWrapper<real>> m_samples;
 
-  constexpr SpectralPixel() = default;
+  SpectralPixel() = default;
 
   constexpr inline void add_sample(const sample_t &sample) {
     debug_assert(min_wavelength <= sample.wavelength &&
                      sample.wavelength <= max_wavelength,
                  "wavelength ({}) not in [{}, {}]", sample.wavelength,
                  min_wavelength, max_wavelength);
-    m_function.add_point(sample.wavelength, sample.value);
+    m_samples[sample.wavelength].add_sample(sample.value);
   }
 
   inline Colour to_pixel() const {
@@ -139,16 +152,28 @@ struct SpectralPixel {
                                      max_wavelength);
     };
 
+    PiecewiseLinear function;
+    for (const auto &[wavelength, average] : m_samples) {
+      function.add_point(wavelength, average.get_value());
+    }
+    function.debug_print();
+    function.normalize(min_wavelength, max_wavelength);
+
     const auto &cmf = ColourMatchingFunction::get();
-    const real X = combine(m_function, cmf.X);
-    const real Y = combine(m_function, cmf.Y);
-    const real Z = combine(m_function, cmf.Z);
+    const real X = combine(function, cmf.X);
+    const real Y = combine(function, cmf.Y);
+    const real Z = combine(function, cmf.Z);
     const real R = 3.2404542 * X - 1.5371385 * Y - 0.4985314 * Z;
     const real G = -0.9692660 * X + 1.8760108 * Y + 0.0415560 * Z;
     const real B = 0.0556434 * X - 0.2040259 * Y + 1.0572252 * Z;
+
+    fmt::println("X: {}, Y: {}, Z: {}", X, Y, Z);
+    fmt::println("R: {}, G: {}, B: {}", R, G, B);
+
     return Colour(R, G, B);
   }
 };
 
 using RGBImage = OutputImage<RGBPixel>;
 using RGBVarianceImage = OutputImage<RGBVariancePixel>;
+using SpectralImage = OutputImage<SpectralPixel>;

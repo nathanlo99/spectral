@@ -22,11 +22,12 @@ struct ColourMatchingFunction {
 
 private:
   ColourMatchingFunction() {
+    constexpr real integral = 106.856895;
     for (size_t i = 0; i < num_cmf_samples; ++i) {
       const auto &[lambda, x, y, z] = cmf_table[i];
-      X.add_point(lambda, x);
-      Y.add_point(lambda, y);
-      Z.add_point(lambda, z);
+      X.add_point(lambda, x / integral);
+      Y.add_point(lambda, y / integral);
+      Z.add_point(lambda, z / integral);
     }
   }
 

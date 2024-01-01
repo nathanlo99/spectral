@@ -12,6 +12,7 @@
 #include "util/output_image.hpp"
 #include "util/piecewise_linear.hpp"
 #include "util/random.hpp"
+#include "util/spectral_conversion.hpp"
 
 std::shared_ptr<Hittable> random_scene() {
   RNG random;
@@ -67,7 +68,37 @@ std::shared_ptr<Hittable> random_scene() {
 }
 
 void render_spectral() {
-  OutputImage<SpectralPixel> image(800, 800);
+  SpectralImage image(200, 200);
+  const auto material = std::make_shared<Material>(
+      SpectralMaterial(Colour(1.0, 0.0, 0.0), CauchyIORFunction(1.0, 1.5)));
+  const auto sphere = std::make_shared<Sphere>(vec3(0, 0, 0), 2.0, material);
+
+  Camera camera(vec3(0.0, 0.0, 12), vec3(0.0, 0.0, 0.0));
+  camera.vertical_fov = 20;
+  camera.set_output_image(image);
+
+  for (const real wavelength : {400.0, 550.0, 700.0}) {
+    const Colour colour(1.0, 0.0, 0.0);
+    const real intensity =
+        rgb_to_spectral<SpectrumType::Illuminant>(colour, wavelength);
+    fmt::println("Wavelength: {}, Intensity: {}", wavelength, intensity);
+    for (size_t row = 0; row < image.m_height; ++row) {
+      for (size_t col = 0; col < image.m_width; ++col) {
+        image.add_pixel_sample(row, col, {wavelength, intensity});
+      }
+    }
+  }
+
+  // Scene scene;
+  // scene.add(sphere);
+  // scene.render_spectral(camera, image, 100, 100);
+
+  fmt::println("Writing spectral image...");
+  image.write_png<false>("output/spectral.png");
+}
+
+void render_spectral_demo() {
+  SpectralImage image(800, 800);
   for (size_t row = 0; row < image.m_height; ++row) {
     for (size_t col = 0; col < image.m_width; ++col) {
       const real mean =
@@ -81,8 +112,6 @@ void render_spectral() {
       for (real wavelength = 400.0; wavelength <= 700.0; wavelength += 2.5) {
         image.add_pixel_sample(row, col, {wavelength, f(wavelength)});
       }
-      image.m_pixels[row * image.m_width + col].m_function.normalize(400.0,
-                                                                     700.0);
     }
   }
 
@@ -121,4 +150,4 @@ void render() {
   scene.render(camera, image, 100, 100);
 }
 
-int main() { render(); }
+int main() { render_spectral(); }

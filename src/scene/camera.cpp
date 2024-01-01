@@ -29,12 +29,13 @@ void Camera::update_constants() {
   pixel_size = near_plane_height / image_height;
 }
 
-Ray Camera::get_ray(const vec2 pixel, RNG &random) const {
+Ray Camera::get_ray(const vec2 pixel, RNG &random,
+                    const real wavelength) const {
   const real x = pixel.x, y = pixel.y;
   const vec2 jitter = aperture_radius * random.random_vec2_in_unit_disk();
   const vec3 source = pos + jitter.x * right + jitter.y * up;
   const vec3 target = pos + focal_length * forward +
                       (x - image_width / 2.0f) * pixel_size * right +
                       (image_height / 2.0f - y) * pixel_size * up;
-  return Ray(source, target - source);
+  return Ray(source, target - source, wavelength);
 }

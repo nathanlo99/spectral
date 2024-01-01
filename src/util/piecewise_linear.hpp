@@ -3,6 +3,8 @@
 
 #include "util.hpp"
 
+#include <set>
+
 struct PiecewiseLinear {
   struct Point {
     real x, y;
@@ -15,8 +17,21 @@ struct PiecewiseLinear {
   mutable std::vector<Point> m_points;
   mutable bool m_is_sorted = false;
 
+  template <size_t N>
+  constexpr PiecewiseLinear(const std::array<real, N> &x_values,
+                            const std::array<real, N> &y_values) {
+    m_points.reserve(N);
+    for (size_t i = 0; i < N; ++i)
+      m_points.emplace_back(x_values[i], y_values[i]);
+  }
+
   constexpr PiecewiseLinear(const std::vector<Point> &points = {})
       : m_points(points) {}
+
+  void debug_print() const {
+    for (const auto &[x, y] : m_points)
+      fmt::print("({}, {})\n", x, y);
+  }
 
   constexpr inline void add_point(const real x, const real y) {
     m_points.emplace_back(x, y);
@@ -56,6 +71,11 @@ struct PiecewiseLinear {
     return lerp(y0, y1, t);
   }
   constexpr inline real operator()(const real x) const { return this->at(x); }
+
+  inline void clamp(const real a, const real b) {
+    for (auto &[x, y] : m_points)
+      y = std::clamp(y, a, b);
+  }
 
   constexpr inline real area_between(const real a, const real b) const {
     sort_points();
@@ -149,5 +169,38 @@ struct PiecewiseLinear {
     }
 
     return result;
+  }
+
+  friend inline PiecewiseLinear operator+(const PiecewiseLinear &lhs,
+                                          const PiecewiseLinear &rhs) {
+    // Gather all the x-coordinates
+    std::set<real> x_values;
+    for (const auto &[x, y] : lhs.m_points)
+      x_values.insert(x);
+    for (const auto &[x, y] : rhs.m_points)
+      x_values.insert(x);
+
+    PiecewiseLinear result;
+    for (const real x : x_values)
+      result.add_point(x, lhs.at(x) + rhs.at(x));
+    return result;
+  }
+
+  friend inline PiecewiseLinear operator*(const double scalar,
+                                          const PiecewiseLinear &function) {
+    std::vector<Point> result;
+    result.reserve(function.m_points.size());
+    for (const auto &[x, y] : function.m_points)
+      result.emplace_back(x, y * scalar);
+    return PiecewiseLinear(result);
+  }
+
+  friend inline PiecewiseLinear operator*(const PiecewiseLinear &function,
+                                          const double scalar) {
+    return scalar * function;
+  }
+
+  friend void operator+=(PiecewiseLinear &lhs, const PiecewiseLinear &rhs) {
+    lhs = lhs + rhs;
   }
 };

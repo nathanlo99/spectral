@@ -3,7 +3,7 @@
 #include "hit_record.hpp"
 
 constexpr vec2 Sphere::get_uv(const vec3 &point) {
-  const real pi = glm::pi<real>();
+  constexpr real pi = glm::pi<real>();
   const real theta = std::acos(-point.y);
   const real phi = std::atan2(-point.z, point.x) + pi;
 

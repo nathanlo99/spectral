@@ -18,6 +18,7 @@ struct Scene {
   inline void add(std::shared_ptr<Hittable> object) { world.add(object); }
 
   constexpr Colour get_background_colour(const Ray &ray) const {
+    return Colour(1.0, 0.0, 0.0);
     const vec3 unit_direction = glm::normalize(ray.direction);
     const auto a = 0.5 * (unit_direction.y + 1.0);
     return (1.0 - a) * Colour(1.0, 1.0, 1.0) + a * Colour(0.5, 0.7, 1.0);
@@ -28,6 +29,7 @@ struct Scene {
   }
 
   Colour ray_colour(RNG &random, const size_t max_depth, const Ray &ray) const;
+  real get_intensity(RNG &random, const size_t max_depth, const Ray &ray) const;
 
   template <typename Pixel, bool do_progress_updates = true>
   void render(const Camera &camera, OutputImage<Pixel> &image,
@@ -112,5 +114,24 @@ struct Scene {
       }
     }
     image.template write_png<true>("output/progress.png");
+  }
+
+  void render_spectral(const Camera &camera, SpectralImage &image,
+                       const size_t samples_per_pixel, const size_t max_depth) {
+    const auto wavelengths = std::vector<real>{550};
+    RNG random;
+    for (size_t row = 0; row < image.m_height; ++row) {
+      for (size_t col = 0; col < image.m_width; ++col) {
+        const vec2 pixel = vec2(col + 0.5, row + 0.5);
+        for (const real wavelength : wavelengths) {
+          for (size_t sample = 0; sample < samples_per_pixel; ++sample) {
+            const vec2 jitter = random.random_vec2(-0.5, 0.5);
+            const Ray ray = camera.get_ray(pixel + jitter, random, wavelength);
+            const real intensity = get_intensity(random, max_depth, ray);
+            image.add_pixel_sample(row, col, {wavelength, intensity});
+          }
+        }
+      }
+    }
   }
 };
